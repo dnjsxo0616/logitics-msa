@@ -8,7 +8,6 @@ public record DeliveryCreateRequest(
         UUID orderId,
         UUID departureHubId,
         UUID destinationHubId,
-        UUID productId,
         String deliveryAddress,
         String recipientName,
         String recipientSlackId,
@@ -20,12 +19,20 @@ public record DeliveryCreateRequest(
                 orderId,
                 departureHubId,
                 destinationHubId,
-                productId,
                 deliveryAddress,
                 recipientName,
                 recipientSlackId,
-                productInfo,
+                productInfo.productId(),
+                productInfo.name(),
+                productInfo.quantity(),
                 requestMessage
         );
+    }
+
+    public record ProductInfo(
+            UUID productId,
+            String name,
+            int quantity
+    ) {
     }
 }
