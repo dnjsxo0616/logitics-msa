@@ -1,7 +1,5 @@
 package com.iftrue.delivery.global.common;
 
-import org.hibernate.query.SortDirection;
-
 import java.util.UUID;
 
 public record CursorPageInfo(
