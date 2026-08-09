@@ -4,9 +4,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
 @Entity
 @Table(name = "p_product")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product extends BaseEntity {
 
 	@Column(name = "company_id", nullable = false)
@@ -24,24 +29,20 @@ public class Product extends BaseEntity {
 	@Column(name = "product_quantity", nullable = false)
 	private Long productQuantity;
 
-	protected Product() {
-	}
-
-	private Product(UUID companyId, UUID hubId, String productName, String productDescription, Long productQuantity, UUID actorId) {
+	private Product(UUID companyId, UUID hubId, String productName, String productDescription, Long productQuantity) {
 		validateQuantity(productQuantity);
 		this.companyId = companyId;
 		this.hubId = hubId;
 		this.productName = productName;
 		this.productDescription = productDescription;
 		this.productQuantity = productQuantity;
-		initializeAudit(actorId);
 	}
 
-	public static Product create(UUID companyId, UUID hubId, String productName, String productDescription, Long productQuantity, UUID actorId) {
-		return new Product(companyId, hubId, productName, productDescription, productQuantity, actorId);
+	public static Product create(UUID companyId, UUID hubId, String productName, String productDescription, Long productQuantity) {
+		return new Product(companyId, hubId, productName, productDescription, productQuantity);
 	}
 
-	public void update(UUID companyId, UUID hubId, String productName, String productDescription, Long productQuantity, UUID actorId) {
+	public void update(UUID companyId, UUID hubId, String productName, String productDescription, Long productQuantity) {
 		if (companyId != null) {
 			this.companyId = companyId;
 		}
@@ -58,42 +59,20 @@ public class Product extends BaseEntity {
 			validateQuantity(productQuantity);
 			this.productQuantity = productQuantity;
 		}
-		markUpdated(actorId);
 	}
 
 	public void delete(UUID actorId) {
 		markDeleted(actorId);
 	}
 
-	public void adjustQuantity(Long productQuantity, UUID actorId) {
+	public void adjustQuantity(Long productQuantity) {
 		validateQuantity(productQuantity);
 		this.productQuantity = productQuantity;
-		markUpdated(actorId);
 	}
 
 	private static void validateQuantity(Long quantity) {
 		if (quantity == null || quantity < 0) {
 			throw new IllegalArgumentException("Product quantity must be greater than or equal to 0.");
 		}
-	}
-
-	public UUID getCompanyId() {
-		return companyId;
-	}
-
-	public UUID getHubId() {
-		return hubId;
-	}
-
-	public String getProductName() {
-		return productName;
-	}
-
-	public String getProductDescription() {
-		return productDescription;
-	}
-
-	public Long getProductQuantity() {
-		return productQuantity;
 	}
 }

@@ -10,10 +10,14 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.Getter;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+@Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
@@ -28,6 +32,7 @@ public abstract class BaseEntity {
 	private Instant createdAt;
 
 	@Column(name = "created_by", nullable = false, updatable = false)
+	@CreatedBy
 	private UUID createdBy;
 
 	@Column(name = "updated_at", nullable = false)
@@ -35,6 +40,7 @@ public abstract class BaseEntity {
 	private Instant updatedAt;
 
 	@Column(name = "updated_by", nullable = false)
+	@LastModifiedBy
 	private UUID updatedBy;
 
 	@Column(name = "deleted_at")
@@ -47,50 +53,8 @@ public abstract class BaseEntity {
 	@Column(nullable = false)
 	private Long version = 0L;
 
-	protected void initializeAudit(UUID actorId) {
-		this.createdBy = actorId;
-		this.updatedBy = actorId;
-	}
-
-	protected void markUpdated(UUID actorId) {
-		this.updatedBy = actorId;
-	}
-
 	protected void markDeleted(UUID actorId) {
 		this.deletedAt = Instant.now();
 		this.deletedBy = actorId;
-		this.updatedBy = actorId;
-	}
-
-	public UUID getId() {
-		return id;
-	}
-
-	public Instant getCreatedAt() {
-		return createdAt;
-	}
-
-	public UUID getCreatedBy() {
-		return createdBy;
-	}
-
-	public Instant getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public UUID getUpdatedBy() {
-		return updatedBy;
-	}
-
-	public Instant getDeletedAt() {
-		return deletedAt;
-	}
-
-	public UUID getDeletedBy() {
-		return deletedBy;
-	}
-
-	public Long getVersion() {
-		return version;
 	}
 }

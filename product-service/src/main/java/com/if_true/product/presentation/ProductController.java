@@ -7,6 +7,7 @@ import com.if_true.product.presentation.dto.ProductUpdateRequest;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -24,21 +25,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/products")
+@RequiredArgsConstructor
 public class ProductController {
 
 	private final ProductService productService;
 
-	public ProductController(ProductService productService) {
-		this.productService = productService;
-	}
-
 	@PostMapping
 	@PreAuthorize("hasAnyRole('MASTER', 'HUB_MANAGER')")
 	public ResponseEntity<ProductResponse> create(
-		@RequestHeader("X-User-Id") UUID actorId,
 		@Valid @RequestBody ProductRequest request
 	) {
-		ProductResponse response = productService.create(request, actorId);
+		ProductResponse response = productService.create(request);
 		return ResponseEntity.created(URI.create("/api/v1/products/" + response.id())).body(response);
 	}
 
@@ -63,10 +60,9 @@ public class ProductController {
 	@PreAuthorize("hasAnyRole('MASTER', 'HUB_MANAGER')")
 	public ProductResponse update(
 		@PathVariable UUID id,
-		@RequestHeader("X-User-Id") UUID actorId,
 		@Valid @RequestBody ProductUpdateRequest request
 	) {
-		return productService.update(id, request, actorId);
+		return productService.update(id, request);
 	}
 
 	@DeleteMapping("/{id}")

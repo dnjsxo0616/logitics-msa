@@ -46,7 +46,7 @@ public class ProductService {
 	}
 
 	@Transactional
-	public ProductResponse create(ProductRequest request, UUID actorId) {
+	public ProductResponse create(ProductRequest request) {
 		CompanyResponse company = validateCompanyExists(request.companyId());
 		validateHubExists(request.hubId());
 		validateCompanyHub(company, request.hubId());
@@ -55,8 +55,7 @@ public class ProductService {
 			request.hubId(),
 			request.productName(),
 			request.productDescription(),
-			request.productQuantity(),
-			actorId
+			request.productQuantity()
 		);
 		return ProductResponse.from(productRepository.save(product));
 	}
@@ -74,7 +73,7 @@ public class ProductService {
 	}
 
 	@Transactional
-	public ProductResponse update(UUID id, ProductUpdateRequest request, UUID actorId) {
+	public ProductResponse update(UUID id, ProductUpdateRequest request) {
 		Product product = findActiveProduct(id);
 		UUID nextCompanyId = request.companyId() == null ? product.getCompanyId() : request.companyId();
 		UUID nextHubId = request.hubId() == null ? product.getHubId() : request.hubId();
@@ -86,8 +85,7 @@ public class ProductService {
 			request.hubId(),
 			request.productName(),
 			request.productDescription(),
-			request.productQuantity(),
-			actorId
+			request.productQuantity()
 		);
 		return ProductResponse.from(product);
 	}
@@ -115,9 +113,9 @@ public class ProductService {
 	}
 
 	@Transactional
-	public InventoryResponse adjustInventory(UUID productId, Long productQuantity, UUID actorId) {
+	public InventoryResponse adjustInventory(UUID productId, Long productQuantity) {
 		Product product = findActiveProduct(productId);
-		product.adjustQuantity(productQuantity, actorId);
+		product.adjustQuantity(productQuantity);
 		return InventoryResponse.from(product);
 	}
 
