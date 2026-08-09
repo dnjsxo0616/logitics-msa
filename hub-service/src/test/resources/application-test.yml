@@ -8,3 +8,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+internal:
+  service-key: test-internal-key
