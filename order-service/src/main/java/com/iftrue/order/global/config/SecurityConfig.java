@@ -1,7 +1,6 @@
 package com.iftrue.order.global.config;
 
 import com.iftrue.order.global.security.HeaderAuthenticationFilter;
-import com.iftrue.order.global.security.handler.RestAccessDeniedHandler;
 import com.iftrue.order.global.security.handler.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -19,7 +18,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
-    private final RestAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -45,8 +43,7 @@ public class SecurityConfig {
                                 .authenticated()
                 )
                 .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(authenticationEntryPoint)
-                                .accessDeniedHandler(accessDeniedHandler))
+                        exception.authenticationEntryPoint(authenticationEntryPoint))
                 .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
