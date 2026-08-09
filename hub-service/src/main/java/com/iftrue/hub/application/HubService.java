@@ -1,6 +1,7 @@
 package com.iftrue.hub.application;
 
 import com.iftrue.hub.application.dto.HubCreateRequestDto;
+import com.iftrue.hub.application.dto.HubExistsResponseDto;
 import com.iftrue.hub.application.dto.HubResponseDto;
 import com.iftrue.hub.application.dto.HubUpdateRequestDto;
 import com.iftrue.hub.domain.Hub;
@@ -112,6 +113,12 @@ public class HubService {
         hubRouteService.softDeleteRoutesByHub(hubId, userId);
 
         log.info("[Hub] 허브 삭제 완료 id={}", hubId);
+    }
+
+    public HubExistsResponseDto existsHub(UUID hubId) {
+        boolean exists = hubRepository.existsByIdAndDeletedAtIsNull(hubId);
+        log.info("[Hub-internal] 허브 존재 확인 hubId={}, exists={}", hubId, exists);
+        return HubExistsResponseDto.of(hubId, exists);
     }
 
     private void checkMasterRole() {
