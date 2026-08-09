@@ -70,6 +70,19 @@ public class Product extends BaseEntity {
 		this.productQuantity = productQuantity;
 	}
 
+	public void decreaseQuantity(Long quantity) {
+		validateQuantity(quantity);
+		if (productQuantity < quantity) {
+			throw new IllegalStateException("Product quantity is insufficient.");
+		}
+		this.productQuantity -= quantity;
+	}
+
+	public void restoreQuantity(Long quantity) {
+		validateQuantity(quantity);
+		this.productQuantity += quantity;
+	}
+
 	private static void validateQuantity(Long quantity) {
 		if (quantity == null || quantity < 0) {
 			throw new IllegalArgumentException("Product quantity must be greater than or equal to 0.");
