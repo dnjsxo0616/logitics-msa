@@ -1,6 +1,7 @@
 package com.iftrue.hub.application;
 
 import com.iftrue.hub.application.dto.HubRouteCreateRequestDto;
+import com.iftrue.hub.application.dto.HubRoutePathResponseDto;
 import com.iftrue.hub.application.dto.HubRouteResponseDto;
 import com.iftrue.hub.application.dto.HubRouteUpdateRequestDto;
 import com.iftrue.hub.domain.HubRepository;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -129,6 +131,25 @@ public class HubRouteService {
         routes.forEach(route -> route.softDelete(userId));
 
         log.info("[HubRoute] 허브 삭제 시 연관 경로 soft delete 완료 hubId={}, count={}", hubId, routes.size());
+    }
+
+    public HubRoutePathResponseDto findPath(UUID departureHubId, UUID arrivalHubId) {
+        validateHubExists(departureHubId);
+        validateHubExists(arrivalHubId);
+
+        if (departureHubId.equals(arrivalHubId)) {
+            log.info("[HubRoute-internal] 출발 경로 = 도착 경로, hubId={}", departureHubId);
+            return HubRoutePathResponseDto.sameHub();
+        }
+
+        HubRoute route = hubRouteRepository
+                .findByDepartureHubIdAndArrivalHubIdAndDeletedAtIsNull(departureHubId, arrivalHubId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.HUB_ROUTE_NOT_FOUND));
+
+        log.info("[HubRoute-internal] 내부 경로 조회 완료 depHubId={}, arrHubId={}",
+                departureHubId, arrivalHubId);
+
+        return HubRoutePathResponseDto.direct(route);
     }
 
     private Pageable toRoutePageable(Pageable requestedPageable) {
