@@ -2,6 +2,7 @@ package com.iftrue.user.global.security;
 
 
 import com.iftrue.user.domain.UserRole;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -55,17 +56,35 @@ public class JwtUtil {
                 .compact();
     }
 
+
+    /**
+     * Refresh Token 생성
+     */
     public String createRefreshToken(UUID userId) {
         Date now = new Date();
 
         return Jwts.builder()
                 .subject(userId.toString())
-                .claim("type", "refresh")
                 .issuedAt(now)
                 .expiration(
                         new Date(now.getTime() + refreshExpiration)
                 )
                 .signWith(secretKey)
                 .compact();
+    }
+
+
+
+    /**
+     * Refresh Token에서 userId 추출
+     */
+    public UUID getUserIdFromRefreshToken(String refreshToken) {
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(refreshToken)
+                .getPayload();
+
+        return UUID.fromString(claims.getSubject());
     }
 }

@@ -31,7 +31,8 @@ public class LocalJWTAuthenticationFilter implements GlobalFilter {
                 .getPath();
 
         if (path.equals("/api/v1/users/login")
-                || path.equals("/api/v1/users/signup")) {
+                || path.equals("/api/v1/users/signup")
+                || path.equals("/api/v1/users/refresh")) {
             return chain.filter(exchange);
         }
 

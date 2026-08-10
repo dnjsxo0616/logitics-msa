@@ -1,15 +1,12 @@
 package com.iftrue.user.presentation;
 
 import com.iftrue.user.application.AuthService;
-import com.iftrue.user.application.AuthService;
 import com.iftrue.user.application.UserService;
 import com.iftrue.user.domain.UserRole;
 import com.iftrue.user.global.response.ApiResponse;
-import com.iftrue.user.presentation.request.LoginRequest;
-import com.iftrue.user.presentation.request.SignUpRequest;
-import com.iftrue.user.presentation.request.UserStatusUpdateRequest;
-import com.iftrue.user.presentation.request.UserUpdateRequest;
+import com.iftrue.user.presentation.request.*;
 import com.iftrue.user.presentation.response.LoginResponse;
+import com.iftrue.user.presentation.response.RefreshTokenResponse;
 import com.iftrue.user.presentation.response.UserResponse;
 import com.iftrue.user.presentation.response.UserStatusUpdateResponse;
 import jakarta.validation.Valid;
@@ -44,7 +41,7 @@ public class UserController {
                 response
         );
     }
-//    @PreAuthorize("hasAnyRole('MASTER')")
+    @PreAuthorize("hasAnyRole('MASTER')")
     @PatchMapping("/{id}/status")
     public ApiResponse<UserStatusUpdateResponse> updateStatus(
             @PathVariable UUID id,
@@ -57,19 +54,12 @@ public class UserController {
         );
     }
 
-    // TODO: Gateway JWT 인증 구현 후
-    // X-User-Id → requestUserId
-    // X-User-Role → requestRole
-    // 로 전달받아 권한 검증
 
     @GetMapping("/me")
     public ApiResponse<UserResponse> getMyInfo(
-            @RequestHeader("X-User-Id") UUID userId
-//            @AuthenticationPrincipal UserDetailsImpl userDetails
+            @AuthenticationPrincipal UUID userId
     ) {
-        System.out.println(userId);
         UserResponse response = userService.getMyInfo(userId
-//                userDetails.getUserId()
         );
 
         return ApiResponse.success(
@@ -79,7 +69,7 @@ public class UserController {
 
 
     }
-//    @PreAuthorize("hasAnyRole('MASTER','HUB_MANAGER')")
+    @PreAuthorize("hasAnyRole('MASTER','HUB_MANAGER')")
     @GetMapping
     public ApiResponse<Page<UserResponse>> getUsers(
             @PageableDefault(size = 10) Pageable pageable
@@ -93,7 +83,7 @@ public class UserController {
         );
     }
 
-//    @PreAuthorize("hasAnyRole('MASTER','HUB_MANAGER')")
+    @PreAuthorize("hasAnyRole('MASTER','HUB_MANAGER')")
     @GetMapping("/{id}")
     public ApiResponse<UserResponse> getUser(
             @PathVariable UUID id
@@ -113,8 +103,7 @@ public class UserController {
             @Valid @RequestBody UserUpdateRequest request
     ) {
 
-        UserResponse response =
-                userService.updateUser(id, request);
+        UserResponse response = userService.updateUser(id, request);
 
         return ApiResponse.success(
                 HttpStatus.OK,
@@ -124,25 +113,15 @@ public class UserController {
 
     //회원탈퇴
 
-    // TODO: Gateway JWT 인증 구현 후
-    // X-User-Id → requestUserId
-    // X-User-Role → requestRole
-    // 로 전달받아 권한 검증
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteUser(
             @PathVariable UUID id,
-            @RequestHeader("X-User-Id") UUID userId,
-             @RequestHeader("X-User-Role") UserRole role
+            @AuthenticationPrincipal UUID userId,
+            @AuthenticationPrincipal UserRole role
 
-//            @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
 
-        userService.deleteUser(id,
-//                userDetails.getUserId(),
-//                userDetails.getRole()
-                id,
-                null
-                );
+        userService.deleteUser(id, userId, role);
 
         return ApiResponse.success(
                 HttpStatus.OK,
@@ -155,11 +134,31 @@ public class UserController {
     public ApiResponse<LoginResponse> login(
             @Valid @RequestBody LoginRequest request
     ) {
+
         LoginResponse response = authService.login(request);
 
         return ApiResponse.success(
                 HttpStatus.OK,
                 response
         );
+    }
+
+    @PostMapping("/refresh")
+    public ApiResponse<RefreshTokenResponse> refresh(
+            @Valid @RequestBody RefreshTokenRequest request
+    ) {
+        RefreshTokenResponse response =authService.refresh(request.refreshToken());
+
+        return ApiResponse.success(
+                HttpStatus.OK,
+                response
+
+        );
+    }
+
+    @PostMapping("/logout")
+    public void logout(@AuthenticationPrincipal UUID userId) {
+
+        authService.logout(userId);
     }
 }
