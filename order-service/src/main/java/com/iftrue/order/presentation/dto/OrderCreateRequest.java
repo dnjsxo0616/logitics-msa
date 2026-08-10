@@ -11,8 +11,6 @@ public record OrderCreateRequest(
         @NotNull UUID supplierCompanyId,
         @NotNull UUID productId,
         @NotNull @Positive Integer quantity,
-        @NotBlank String requestMessage,
-        @NotBlank String recipientName,
-        @NotBlank String recipientSlackId
+        @NotBlank String requestMessage
 ) {
 }
