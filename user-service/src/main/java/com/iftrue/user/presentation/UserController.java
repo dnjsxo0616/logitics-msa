@@ -157,8 +157,13 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public void logout(@AuthenticationPrincipal UUID userId) {
+    public ApiResponse<Void> logout(@AuthenticationPrincipal UUID userId,
+                       @RequestHeader("Authorization") String authorization) {
 
-        authService.logout(userId);
+        authService.logout(userId,authorization);
+
+        return ApiResponse.success(
+                HttpStatus.OK
+        );
     }
 }

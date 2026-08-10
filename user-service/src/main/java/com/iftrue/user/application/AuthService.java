@@ -6,6 +6,7 @@ import com.iftrue.user.global.exception.BusinessException;
 import com.iftrue.user.global.exception.ErrorCode;
 import com.iftrue.user.global.security.JwtUtil;
 import com.iftrue.user.infrastructure.redis.RefreshTokenRepository;
+import com.iftrue.user.infrastructure.redis.TokenBlacklistRepository;
 import com.iftrue.user.presentation.request.LoginRequest;
 import com.iftrue.user.presentation.response.LoginResponse;
 import com.iftrue.user.presentation.response.RefreshTokenResponse;
@@ -27,6 +28,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenBlacklistRepository tokenBlacklistRepository;
 
     public LoginResponse login(LoginRequest request) {
 
@@ -115,9 +117,24 @@ public class AuthService {
         return new RefreshTokenResponse(accessToken);
     }
 
-    public void logout(UUID userId) {
+    public void logout(UUID userId, String authorization) {
 
+        String accessToken = jwtUtil.resolveToken(authorization);
+
+        // 1. Access Token 남은 만료시간 계산
+        long remainingExpiration =
+                jwtUtil.getRemainingExpiration(accessToken);
+
+        // 2. Access Token Blacklist 등록
+        tokenBlacklistRepository.save(
+                accessToken,
+                remainingExpiration
+        );
+
+        // 3. Refresh Token 삭제
         refreshTokenRepository.deleteByUserId(userId);
+
+
     }
 
 

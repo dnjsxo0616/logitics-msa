@@ -87,4 +87,24 @@ public class JwtUtil {
 
         return UUID.fromString(claims.getSubject());
     }
+
+    public long getRemainingExpiration(String token) {
+
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+
+        return claims.getExpiration().getTime() - System.currentTimeMillis();
+    }
+
+    public String resolveToken(String authorization) {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization header");
+        }
+
+        return authorization.substring(7).trim();
+    }
 }

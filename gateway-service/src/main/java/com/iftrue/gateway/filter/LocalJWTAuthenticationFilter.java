@@ -1,5 +1,8 @@
 package com.iftrue.gateway.filter;
 
+import com.iftrue.gateway.exception.ErrorCode;
+import com.iftrue.gateway.repository.TokenBlacklistRepository;
+import com.iftrue.gateway.response.ResponseWriter;
 import com.iftrue.gateway.security.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -19,6 +22,10 @@ import reactor.core.publisher.Mono;
 public class LocalJWTAuthenticationFilter implements GlobalFilter {
 
     private final JwtUtil jwtUtil;
+    private final TokenBlacklistRepository tokenBlacklistRepository;
+
+    private final ResponseWriter responseWriter;
+
 
     @Override
     public Mono<Void> filter(
@@ -30,6 +37,7 @@ public class LocalJWTAuthenticationFilter implements GlobalFilter {
                 .getURI()
                 .getPath();
 
+        // 인증이 필요 없는 요청
         if (path.equals("/api/v1/users/login")
                 || path.equals("/api/v1/users/signup")
                 || path.equals("/api/v1/users/refresh")) {
@@ -39,7 +47,7 @@ public class LocalJWTAuthenticationFilter implements GlobalFilter {
         String token = extractToken(exchange);
 
         if (token == null) {
-            return unauthorized(exchange);
+            return unauthorized(exchange, ErrorCode.INVALID_TOKEN);
         }
 
         try {
@@ -51,40 +59,52 @@ public class LocalJWTAuthenticationFilter implements GlobalFilter {
             String companyId = jwtUtil.getCompanyId(claims);
 
             if (userId == null || role == null) {
-                return unauthorized(exchange);
+                return unauthorized(exchange, ErrorCode.INVALID_TOKEN);
             }
 
-            ServerHttpRequest request = exchange.getRequest()
-                    .mutate()
-                    .headers(headers -> {
+            // 블랙리스트 검사
+            return tokenBlacklistRepository.exists(token)
+                    .flatMap(isBlacklisted -> {
 
-                        headers.remove("X-User-Id");
-                        headers.remove("X-User-Role");
-                        headers.remove("X-User-Hub-Id");
-                        headers.remove("X-User-Company-Id");
-
-                        headers.set("X-User-Id", userId);
-                        headers.set("X-User-Role", role);
-
-                        if (hubId != null) {
-                            headers.set("X-User-Hub-Id", hubId);
+                        if (isBlacklisted) {
+                            log.warn("Blacklisted JWT access attempt");
+                            return unauthorized(exchange, ErrorCode.INVALID_TOKEN);
                         }
 
-                        if (companyId != null) {
-                            headers.set("X-User-Company-Id", companyId);
-                        }
-                    })
-                    .build();
+                        ServerHttpRequest request = exchange.getRequest()
+                                .mutate()
+                                .headers(headers -> {
 
-            return chain.filter(
-                    exchange.mutate()
-                            .request(request)
-                            .build()
-            );
+                                    headers.remove("X-User-Id");
+                                    headers.remove("X-User-Role");
+                                    headers.remove("X-User-Hub-Id");
+                                    headers.remove("X-User-Company-Id");
 
+                                    headers.set("X-User-Id", userId);
+                                    headers.set("X-User-Role", role);
+
+                                    if (hubId != null) {
+                                        headers.set("X-User-Hub-Id", hubId);
+                                    }
+
+                                    if (companyId != null) {
+                                        headers.set("X-User-Company-Id", companyId);
+                                    }
+                                })
+                                .build();
+
+                        return chain.filter(
+                                exchange.mutate()
+                                        .request(request)
+                                        .build()
+                        );
+                    }).onErrorResume(e -> {
+                        log.error("Redis blacklist check failed", e);
+                        return unauthorized(exchange,ErrorCode.SERVICE_UNAVAILABLE);
+                    });
         } catch (JwtException | IllegalArgumentException e) {
             log.warn("Invalid JWT: {}", e.getMessage());
-            return unauthorized(exchange);
+            return unauthorized(exchange, ErrorCode.INVALID_TOKEN);
         }
     }
 
@@ -102,11 +122,11 @@ public class LocalJWTAuthenticationFilter implements GlobalFilter {
         return null;
     }
 
-    private Mono<Void> unauthorized(ServerWebExchange exchange) {
+    private Mono<Void> unauthorized(ServerWebExchange exchange,ErrorCode errorCode) {
 
-        exchange.getResponse()
-                .setStatusCode(HttpStatus.UNAUTHORIZED);
-
-        return exchange.getResponse().setComplete();
+        return responseWriter.write(
+                exchange,
+                ErrorCode.INVALID_TOKEN
+        );
     }
 }
