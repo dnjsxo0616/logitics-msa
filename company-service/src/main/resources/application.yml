@@ -4,11 +4,13 @@ server:
 spring:
   application:
     name: company-service
+
   datasource:
     url: ${COMPANY_DB_URL:${POSTGRES_URL:jdbc:postgresql://localhost:5432/logistics}}
-    username: ${COMPANY_DB_USERNAME:${POSTGRES_USER:iftrue}}
+    username: ${COMPANY_DB_USERNAME:${COMPANY_DB_USER:${POSTGRES_USER:iftrue}}}
     password: ${COMPANY_DB_PASSWORD:${POSTGRES_PASSWORD:iftrue1234}}
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:validate}
@@ -25,6 +27,7 @@ spring:
           default:
             connect-timeout: ${FEIGN_CONNECT_TIMEOUT:3000}
             read-timeout: ${FEIGN_READ_TIMEOUT:5000}
+
 eureka:
   client:
     service-url:
