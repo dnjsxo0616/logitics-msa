@@ -106,6 +106,10 @@ public class Order {
         changeStatus(OrderStatus.CONFIRMED);
     }
     public void fail() {
+        if (this.status == OrderStatus.FAILED) {
+            return;
+        }
+
         changeStatus(OrderStatus.FAILED);
     }
 

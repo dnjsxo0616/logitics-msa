@@ -21,7 +21,7 @@ public class OrderService {
     private static final String MASTER_ROLE = "MASTER";
 
     private final OrderTransactionService orderTransactionService;
-    private final OrderConfirmationService orderConfirmationService;
+    private final OrderStatusRetryService orderStatusRetryService;
     private final OrderExternalService orderExternalService;
 
     public void createOrder(OrderCreateRequest request, AuthenticatedUser user) {
@@ -60,7 +60,7 @@ public class OrderService {
 
             deliveryCreated = true;
 
-            orderConfirmationService.confirmWithRetry(orderId);
+            orderStatusRetryService.confirmWithRetry(orderId);
 
         } catch (RuntimeException exception) {
             RuntimeException failure = exception;
@@ -71,7 +71,7 @@ public class OrderService {
                 failure = restoreInventory(orderId, request, exception);
             }
 
-            orderTransactionService.failOrder(orderId);
+            orderStatusRetryService.failWithRetry(orderId);
 
             throw convertExternalException(failure);
         }

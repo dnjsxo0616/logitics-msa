@@ -8,22 +8,27 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class OrderConfirmationService {
+public class OrderStatusRetryService {
 
     private static final int MAX_ATTEMPTS = 3;
 
     private final OrderTransactionService orderTransactionService;
 
-    public void confirmWithRetry(UUID orderId) {
+    public void confirmWithRetry(UUID orderId) { executeWithRetry(() -> orderTransactionService.confirmOrder(orderId));}
+
+    public void failWithRetry(UUID orderId) {
+        executeWithRetry(() -> orderTransactionService.failOrder(orderId));
+    }
+
+    private void executeWithRetry(Runnable statusChange) {
         for (int attempt = 1; attempt < MAX_ATTEMPTS; attempt++) {
             try {
-                orderTransactionService.confirmOrder(orderId);
+                statusChange.run();
                 return;
 
-            } catch (TransientDataAccessException ignored) {
-            }
+            } catch (TransientDataAccessException ignored) {}
         }
 
-        orderTransactionService.confirmOrder(orderId);
+        statusChange.run();
     }
 }
