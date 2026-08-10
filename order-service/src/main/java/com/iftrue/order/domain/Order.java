@@ -99,6 +99,10 @@ public class Order {
     }
 
     public void confirm() {
+        if (this.status == OrderStatus.CONFIRMED) {
+            return;
+        }
+
         changeStatus(OrderStatus.CONFIRMED);
     }
     public void fail() {
