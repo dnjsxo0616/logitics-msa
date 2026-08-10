@@ -9,8 +9,8 @@ import java.util.UUID;
 
 public record DeliveryCreateRequest(
         @NotNull UUID orderId,
-        @NotNull UUID departureHubId,
-        @NotNull UUID destinationHubId,
+        @NotNull UUID supplierCompanyId,
+        @NotNull UUID receiverCompanyId,
         @NotBlank String deliveryAddress,
         @NotBlank String recipientName,
         @NotBlank String recipientSlackId,

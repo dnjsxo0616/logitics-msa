@@ -33,7 +33,7 @@ public class OrderService {
 
         try {
             CompanyResponse receiverCompany = orderExternalService.getCompany(request.receiverCompanyId());
-            CompanyResponse supplierCompany = orderExternalService.getCompany(request.supplierCompanyId());
+            orderExternalService.getCompany(request.supplierCompanyId());
 
             ProductResponse product = orderExternalService.getProduct(request.productId());
 
@@ -50,7 +50,6 @@ public class OrderService {
                     orderId,
                     request,
                     receiverCompany,
-                    supplierCompany,
                     product,
                     recipient
             );
@@ -102,7 +101,6 @@ public class OrderService {
             UUID orderId,
             OrderCreateRequest request,
             CompanyResponse receiverCompany,
-            CompanyResponse supplierCompany,
             ProductResponse product,
             UserResponse recipient
     ) {
@@ -115,8 +113,8 @@ public class OrderService {
 
         return new DeliveryCreateRequest(
                 orderId,
-                supplierCompany.hubId(),
-                receiverCompany.hubId(),
+                request.supplierCompanyId(),
+                request.receiverCompanyId(),
                 receiverCompany.companyAddress(),
                 recipient.name(),
                 recipient.slackId(),

@@ -5,7 +5,6 @@ import java.util.UUID;
 public record ProductResponse(
         UUID productId,
         UUID companyId,
-        UUID hubId,
         String productName
 ) {
 }
