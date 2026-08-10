@@ -3,7 +3,6 @@ package com.iftrue.order.application.service;
 import com.iftrue.order.global.exception.BusinessException;
 import com.iftrue.order.global.exception.OrderErrorCode;
 import com.iftrue.order.global.security.AuthenticatedUser;
-import com.iftrue.order.infrastructure.client.company.dto.CompanyResponse;
 import com.iftrue.order.infrastructure.client.delivery.dto.DeliveryCreateRequest;
 import com.iftrue.order.infrastructure.client.product.dto.ProductResponse;
 import com.iftrue.order.infrastructure.client.user.dto.UserResponse;
@@ -32,8 +31,8 @@ public class OrderService {
         boolean deliveryCreated = false;
 
         try {
-            CompanyResponse receiverCompany = orderExternalService.getCompany(request.receiverCompanyId());
-            orderExternalService.getCompany(request.supplierCompanyId());
+            orderExternalService.checkCompanyExists(request.receiverCompanyId());
+            orderExternalService.checkCompanyExists(request.supplierCompanyId());
 
             ProductResponse product = orderExternalService.getProduct(request.productId());
 
@@ -49,8 +48,6 @@ public class OrderService {
             DeliveryCreateRequest deliveryRequest = createDeliveryRequest(
                     orderId,
                     request,
-                    receiverCompany,
-                    product,
                     recipient
             );
 
@@ -100,26 +97,14 @@ public class OrderService {
     private DeliveryCreateRequest createDeliveryRequest(
             UUID orderId,
             OrderCreateRequest request,
-            CompanyResponse receiverCompany,
-            ProductResponse product,
             UserResponse recipient
     ) {
-        DeliveryCreateRequest.ProductInfo productInfo =
-                new DeliveryCreateRequest.ProductInfo(
-                        product.productId(),
-                        product.productName(),
-                        request.quantity()
-                );
-
         return new DeliveryCreateRequest(
                 orderId,
                 request.supplierCompanyId(),
                 request.receiverCompanyId(),
-                receiverCompany.companyAddress(),
                 recipient.name(),
-                recipient.slackId(),
-                productInfo,
-                request.requestMessage()
+                recipient.slackId()
         );
     }
 
