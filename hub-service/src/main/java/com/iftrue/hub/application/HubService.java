@@ -35,8 +35,8 @@ public class HubService {
     private static final String ROLE_MASTER = "MASTER";
 
     private final HubRepository hubRepository;
-
     private final CurrentUserProvider currentUserProvider;
+    private final HubRouteService hubRouteService;
 
     @Transactional
     public HubResponseDto createHub(HubCreateRequestDto request) {
@@ -45,7 +45,7 @@ public class HubService {
         String name = resolveName(request.getName(), null);
 
         Hub hub = Hub.create(
-                request.getName(),
+                name,
                 request.getAddress(),
                 request.getLatitude(),
                 request.getLongitude()
@@ -107,9 +107,9 @@ public class HubService {
 
         Hub hub = getHubOrThrow(hubId);
 
-        hub.softDelete(currentUserProvider.getCurrentUserId());
-
-        // TODO: HubRoute 구현 후, 해당 허브가 출발 또는 도착인 경로도 함께 soft delete
+        UUID userId = currentUserProvider.getCurrentUserId();
+        hub.softDelete(userId);
+        hubRouteService.softDeleteRoutesByHub(hubId, userId);
 
         log.info("[Hub] 허브 삭제 완료 id={}", hubId);
     }

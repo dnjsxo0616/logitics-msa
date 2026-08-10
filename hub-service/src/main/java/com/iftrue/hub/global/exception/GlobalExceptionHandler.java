@@ -67,10 +67,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException exception) {
 
-        ErrorCode errorCode = ErrorCode.HUB_NAME_DUPLICATED;
+        String constraintName = extractConstraintName(exception);
+        ErrorCode errorCode = resolveConstraintError(constraintName);
 
-        // TODO: hub_route 추가 시 분기 수정 고려할 것
-        log.warn("[Hub] 허브 이름 중복으로 데이터 무결성 제약 조건 위반: {}", exception.getMostSpecificCause().getMessage());
+        if (errorCode == ErrorCode.INTERNAL_SERVER_ERROR) {
+            log.error(
+                    "[Hub, HubRoute] 매핑되지 않은 데이터 무결성 제약 위반: constraint={}",
+                    constraintName,
+                    exception
+            );
+        } else {
+            log.warn(
+                    "[Hub, HubRoute] 데이터 무결성 제약 위반: code={}, constraint={}",
+                    errorCode.getCode(),
+                    constraintName
+            );
+        }
 
         return ResponseEntity
                 .status(errorCode.getStatus())
@@ -87,5 +99,32 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .internalServerError()
                 .body(ErrorResponse.of(errorCode));
+    }
+
+    private ErrorCode resolveConstraintError(String constraintName) {
+        if (constraintName == null) {
+            return ErrorCode.INTERNAL_SERVER_ERROR;
+        }
+
+        return switch (constraintName) {
+            case "uq_hub_name" -> ErrorCode.HUB_NAME_DUPLICATED;
+            case "uq_route_pair" -> ErrorCode.HUB_ROUTE_DUPLICATED;
+            case "fk_route_departure", "fk_route_arrival" -> ErrorCode.HUB_NOT_FOUND;
+            default -> ErrorCode.INTERNAL_SERVER_ERROR;
+        };
+    }
+
+    private String extractConstraintName(DataIntegrityViolationException exception) {
+        Throwable cause = exception;
+
+        while (cause != null) {
+            if (cause instanceof org.hibernate.exception.ConstraintViolationException constraintException) {
+                return constraintException.getConstraintName();
+            }
+
+            cause = cause.getCause();
+        }
+
+        return null;
     }
 }
