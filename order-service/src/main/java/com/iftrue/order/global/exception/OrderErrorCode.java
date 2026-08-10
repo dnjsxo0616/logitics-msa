@@ -29,7 +29,8 @@ public enum OrderErrorCode implements ErrorCode {
     INVENTORY_RESTORE_FAILED(HttpStatus.BAD_GATEWAY, "O-019", "차감된 재고 복원에 실패했습니다."),
     RECIPIENT_REQUIRED(HttpStatus.BAD_REQUEST, "O-020", "MASTER 주문에는 수령 담당자가 필요합니다."),
     DELIVERY_CANCELLATION_FAILED(HttpStatus.BAD_GATEWAY, "O-021", "배송 취소에 실패했습니다."),
-    INVALID_RECIPIENT_INFO(HttpStatus.BAD_GATEWAY, "O-022", "수령 담당자 정보가 올바르지 않습니다.");
+    INVALID_RECIPIENT_INFO(HttpStatus.BAD_GATEWAY, "O-022", "수령 담당자 정보가 올바르지 않습니다."),
+    INVALID_PRODUCT_INFO(HttpStatus.BAD_GATEWAY, "O-023", "상품 정보가 올바르지 않습니다.");
 
     private final HttpStatus status;
     private final String code;

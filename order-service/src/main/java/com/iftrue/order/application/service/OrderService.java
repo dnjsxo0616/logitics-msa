@@ -38,6 +38,7 @@ public class OrderService {
             orderExternalService.checkCompanyExists(request.supplierCompanyId());
 
             ProductResponse product = orderExternalService.getProduct(request.productId());
+            validateProductInfo(product);
 
             UserResponse recipient = orderExternalService.getRecipient(recipientUserId);
 
@@ -100,6 +101,12 @@ public class OrderService {
         }
 
         return user.userId();
+    }
+
+    private void validateProductInfo(ProductResponse product) {
+        if (product == null || product.companyId() == null) {
+            throw new BusinessException(OrderErrorCode.INVALID_PRODUCT_INFO);
+        }
     }
 
     private void validateRecipientInfo(UserResponse recipient) {
