@@ -24,6 +24,7 @@ public class OrderService {
 
     public void createOrder(OrderCreateRequest request, AuthenticatedUser user) {
         validateCompanyScope(request, user);
+        UUID recipientUserId = resolveRecipientUserId(request, user);
 
         UUID orderId = orderTransactionService.createPendingOrder(request);
 
@@ -36,7 +37,7 @@ public class OrderService {
 
             ProductResponse product = orderExternalService.getProduct(request.productId());
 
-            UserResponse recipient = orderExternalService.getRecipient(user.userId());
+            UserResponse recipient = orderExternalService.getRecipient(recipientUserId);
 
             validateProductSupplier(request, product);
             validateRecipientCompany(request, recipient);
@@ -78,6 +79,22 @@ public class OrderService {
         if (user.companyId() == null || !user.companyId().equals(request.receiverCompanyId())) {
             throw new BusinessException(OrderErrorCode.ACCESS_DENIED);
         }
+    }
+
+    private UUID resolveRecipientUserId(OrderCreateRequest request, AuthenticatedUser user) {
+        if (MASTER_ROLE.equals(user.role())) {
+            if (request.recipientUserId() == null) {
+                throw new BusinessException(OrderErrorCode.RECIPIENT_REQUIRED);
+            }
+
+            return request.recipientUserId();
+        }
+
+        if (request.recipientUserId() != null && !request.recipientUserId().equals(user.userId())) {
+            throw new BusinessException(OrderErrorCode.ACCESS_DENIED);
+        }
+
+        return user.userId();
     }
 
     private void validateProductSupplier(OrderCreateRequest request, ProductResponse product
