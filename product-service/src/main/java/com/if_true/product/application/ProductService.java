@@ -9,6 +9,7 @@ import com.if_true.product.presentation.dto.ProductRequest;
 import com.if_true.product.presentation.dto.ProductResponse;
 import com.if_true.product.presentation.dto.ProductUpdateRequest;
 import com.if_true.product.presentation.dto.InventoryResponse;
+import com.if_true.product.presentation.dto.InternalProductResponse;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.UUID;
@@ -98,6 +99,10 @@ public class ProductService {
 
 	public long countByCompanyId(UUID companyId) {
 		return productRepository.countByCompanyIdAndDeletedAtIsNull(companyId);
+	}
+
+	public InternalProductResponse getInternalProduct(UUID productId) {
+		return InternalProductResponse.from(findActiveProduct(productId));
 	}
 
 	public Page<InventoryResponse> searchInventories(String productName, UUID companyId, UUID hubId, Pageable pageable) {
