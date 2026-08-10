@@ -10,6 +10,7 @@ import com.iftrue.order.presentation.dto.OrderCreateRequest;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.UUID;
 
@@ -40,6 +41,7 @@ public class OrderService {
 
             UserResponse recipient = orderExternalService.getRecipient(recipientUserId);
 
+            validateRecipientInfo(recipient);
             validateProductSupplier(request, product);
             validateRecipientCompany(request, recipient);
 
@@ -98,6 +100,15 @@ public class OrderService {
         }
 
         return user.userId();
+    }
+
+    private void validateRecipientInfo(UserResponse recipient) {
+        if (recipient == null
+                || recipient.companyId() == null
+                || !StringUtils.hasText(recipient.name())
+                || !StringUtils.hasText(recipient.slackId())) {
+            throw new BusinessException(OrderErrorCode.INVALID_RECIPIENT_INFO);
+        }
     }
 
     private void validateProductSupplier(OrderCreateRequest request, ProductResponse product
