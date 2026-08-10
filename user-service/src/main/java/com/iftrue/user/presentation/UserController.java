@@ -1,12 +1,10 @@
 package com.iftrue.user.presentation;
 
-//import com.iftrue.user.application.AuthService;
+import com.iftrue.user.application.AuthService;
+import com.iftrue.user.application.AuthService;
 import com.iftrue.user.application.UserService;
-import com.iftrue.user.domain.User;
 import com.iftrue.user.domain.UserRole;
-import com.iftrue.user.global.exception.ErrorCode;
 import com.iftrue.user.global.response.ApiResponse;
-//import com.iftrue.user.global.security.UserDetailsImpl;
 import com.iftrue.user.presentation.request.LoginRequest;
 import com.iftrue.user.presentation.request.SignUpRequest;
 import com.iftrue.user.presentation.request.UserStatusUpdateRequest;
@@ -33,7 +31,7 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
-//    private final AuthService authService;
+    private final AuthService authService;
 
 
     @PostMapping("/signup")
@@ -152,16 +150,16 @@ public class UserController {
         );
     }
 
-    //로그인 //인증 올린 후 활성화
-//    @PostMapping("/login")
-//    public ApiResponse<LoginResponse> login(
-//            @Valid @RequestBody LoginRequest request
-//    ) {
-//        LoginResponse response = authService.login(request);
-//
-//        return ApiResponse.success(
-//                HttpStatus.OK,
-//                response
-//        );
-//    }
+    //로그인
+    @PostMapping("/login")
+    public ApiResponse<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
+        LoginResponse response = authService.login(request);
+
+        return ApiResponse.success(
+                HttpStatus.OK,
+                response
+        );
+    }
 }

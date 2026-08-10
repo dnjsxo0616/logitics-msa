@@ -1,6 +1,9 @@
 package com.iftrue.user.global.config;
 
 
+import com.iftrue.user.global.security.InternalAuthenticationFilter;
+import com.iftrue.user.global.security.SecurityAccessDeniedHandler;
+import com.iftrue.user.global.security.SecurityAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
 @Configuration
@@ -19,10 +23,17 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private final InternalAuthenticationFilter internalAuthenticationFilter;
+    private final SecurityAuthenticationEntryPoint securityAuthenticationEntryPoint;
+    private final SecurityAccessDeniedHandler securityAccessDeniedHandler;
+
+
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,8 +49,15 @@ public class SecurityConfig {
                                 "/api/v1/users/signup"
                         ).permitAll()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(securityAuthenticationEntryPoint)
+                        .accessDeniedHandler(securityAccessDeniedHandler)
+                )
+                .addFilterBefore(
+                        internalAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
                 );
-
 
         return http.build();
     }
