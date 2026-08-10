@@ -39,10 +39,10 @@ public class ProductController {
 		return ResponseEntity.created(URI.create("/api/v1/products/" + response.id())).body(response);
 	}
 
-	@GetMapping("/{id}")
+	@GetMapping("/{productId}")
 	@PreAuthorize("hasAnyRole('MASTER', 'HUB_MANAGER', 'DELIVERY_MANAGER', 'SUPPLIER_MANAGER')")
-	public ProductResponse get(@PathVariable UUID id) {
-		return productService.get(id);
+	public ProductResponse get(@PathVariable UUID productId) {
+		return productService.get(productId);
 	}
 
 	@GetMapping
@@ -56,19 +56,19 @@ public class ProductController {
 		return productService.search(productName, companyId, hubId, pageable);
 	}
 
-	@PatchMapping("/{id}")
+	@PatchMapping("/{productId}")
 	@PreAuthorize("hasAnyRole('MASTER', 'HUB_MANAGER')")
 	public ProductResponse update(
-		@PathVariable UUID id,
+		@PathVariable UUID productId,
 		@Valid @RequestBody ProductUpdateRequest request
 	) {
-		return productService.update(id, request);
+		return productService.update(productId, request);
 	}
 
-	@DeleteMapping("/{id}")
+	@DeleteMapping("/{productId}")
 	@PreAuthorize("hasAnyRole('MASTER', 'HUB_MANAGER')")
-	public ResponseEntity<Void> delete(@PathVariable UUID id, @RequestHeader("X-User-Id") UUID actorId) {
-		productService.delete(id, actorId);
+	public ResponseEntity<Void> delete(@PathVariable UUID productId, @RequestHeader("X-User-Id") UUID actorId) {
+		productService.delete(productId, actorId);
 		return ResponseEntity.noContent().build();
 	}
 }
