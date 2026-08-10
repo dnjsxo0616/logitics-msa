@@ -1,5 +1,5 @@
 server:
-  port: 19005
+  port: ${ORDER_SERVICE_PORT:19005}
 
 spring:
   application:
@@ -26,4 +26,4 @@ eureka:
   client:
     enabled: ${EUREKA_CLIENT_ENABLED:false}
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_URI:http://localhost:19090/eureka}
