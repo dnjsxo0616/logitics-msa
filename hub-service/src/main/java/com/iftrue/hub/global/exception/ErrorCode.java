@@ -16,7 +16,9 @@ public enum ErrorCode {
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "입력값이 올바르지 않습니다.", "H-006"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "인증되지 않은 요청입니다.", "H-007"),
     FORBIDDEN(HttpStatus.FORBIDDEN, "접근 권한이 없습니다.", "H-008"),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.", "H-009");
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.", "H-009"),
+
+    EXTERNAL_ROUTE_API_ERROR(HttpStatus.BAD_GATEWAY, "경로 정보를 조회하지 못했습니다.", "H-010");
 
     private final HttpStatus status;
     private final String message;
