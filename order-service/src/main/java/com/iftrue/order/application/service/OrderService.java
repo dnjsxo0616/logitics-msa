@@ -9,6 +9,7 @@ import com.iftrue.order.infrastructure.client.user.dto.UserResponse;
 import com.iftrue.order.presentation.dto.OrderCreateRequest;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private static final String MASTER_ROLE = "MASTER";
@@ -158,6 +160,8 @@ public class OrderService {
             failure.addSuppressed(originalException);
             failure.addSuppressed(restoreException);
 
+            log.error("재고 복원 보상에 실패했습니다. orderId={}, productId={}", orderId, request.productId(), failure);
+
             return failure;
         }
     }
@@ -175,6 +179,8 @@ public class OrderService {
 
             failure.addSuppressed(originalException);
             failure.addSuppressed(cancellationException);
+
+            log.error("배송 취소 보상에 실패했습니다. orderId={}", orderId, failure);
 
             return failure;
         }
