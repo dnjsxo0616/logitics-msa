@@ -22,6 +22,14 @@ spring:
       hibernate:
         default_schema: order_schema
 
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: ${FEIGN_CONNECT_TIMEOUT:3000}
+            read-timeout: ${FEIGN_READ_TIMEOUT:5000}
+
 eureka:
   client:
     enabled: ${EUREKA_CLIENT_ENABLED:false}
