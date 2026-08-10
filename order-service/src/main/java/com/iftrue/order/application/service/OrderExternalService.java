@@ -51,4 +51,8 @@ public class OrderExternalService {
     public void createDelivery(DeliveryCreateRequest request) {
         deliveryClient.createDelivery(request);
     }
+
+    public void cancelDelivery(UUID orderId) {
+        deliveryClient.cancelDelivery(orderId);
+    }
 }

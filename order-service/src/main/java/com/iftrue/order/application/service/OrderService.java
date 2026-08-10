@@ -20,6 +20,7 @@ public class OrderService {
     private static final String MASTER_ROLE = "MASTER";
 
     private final OrderTransactionService orderTransactionService;
+    private final OrderConfirmationService orderConfirmationService;
     private final OrderExternalService orderExternalService;
 
     public void createOrder(OrderCreateRequest request, AuthenticatedUser user) {
@@ -56,12 +57,14 @@ public class OrderService {
 
             deliveryCreated = true;
 
-            orderTransactionService.confirmOrder(orderId);
+            orderConfirmationService.confirmWithRetry(orderId);
 
         } catch (RuntimeException exception) {
             RuntimeException failure = exception;
 
-            if (inventoryDecreased && !deliveryCreated) {
+            if (deliveryCreated) {
+                failure = cancelDeliveryAndRestoreInventory(orderId, request, exception);
+            } else if (inventoryDecreased) {
                 failure = restoreInventory(orderId, request, exception);
             }
 
@@ -139,6 +142,26 @@ public class OrderService {
 
             return failure;
         }
+    }
+
+    private RuntimeException cancelDeliveryAndRestoreInventory(
+            UUID orderId,
+            OrderCreateRequest request,
+            RuntimeException originalException
+    ) {
+        try {
+            orderExternalService.cancelDelivery(orderId);
+
+        } catch (RuntimeException cancellationException) {
+            BusinessException failure = new BusinessException(OrderErrorCode.DELIVERY_CANCELLATION_FAILED);
+
+            failure.addSuppressed(originalException);
+            failure.addSuppressed(cancellationException);
+
+            return failure;
+        }
+
+        return restoreInventory(orderId, request, originalException);
     }
 
     private RuntimeException convertExternalException(

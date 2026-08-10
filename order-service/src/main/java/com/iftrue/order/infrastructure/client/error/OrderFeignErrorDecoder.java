@@ -19,6 +19,10 @@ public class OrderFeignErrorDecoder implements ErrorDecoder {
             return OrderErrorCode.DELIVERY_CREATION_FAILED;
         }
 
+        if (methodKey.contains("DeliveryClient#cancelDelivery")) {
+            return OrderErrorCode.DELIVERY_CANCELLATION_FAILED;
+        }
+
         if (methodKey.contains("ProductClient#restoreInventory")) {
             return OrderErrorCode.INVENTORY_RESTORE_FAILED;
         }

@@ -27,7 +27,8 @@ public enum OrderErrorCode implements ErrorCode {
     INSUFFICIENT_PRODUCT_STOCK(HttpStatus.CONFLICT, "O-017", "상품 재고가 부족합니다."),
     DELIVERY_CREATION_FAILED(HttpStatus.BAD_GATEWAY, "O-018", "배송 생성에 실패했습니다."),
     INVENTORY_RESTORE_FAILED(HttpStatus.BAD_GATEWAY, "O-019", "차감된 재고 복원에 실패했습니다."),
-    RECIPIENT_REQUIRED(HttpStatus.BAD_REQUEST, "O-020", "MASTER 주문에는 수령 담당자가 필요합니다.");
+    RECIPIENT_REQUIRED(HttpStatus.BAD_REQUEST, "O-020", "MASTER 주문에는 수령 담당자가 필요합니다."),
+    DELIVERY_CANCELLATION_FAILED(HttpStatus.BAD_GATEWAY, "O-021", "배송 취소에 실패했습니다.");
 
     private final HttpStatus status;
     private final String code;
