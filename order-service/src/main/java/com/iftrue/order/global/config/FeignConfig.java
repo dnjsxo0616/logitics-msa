@@ -1,7 +1,9 @@
 package com.iftrue.order.global.config;
 
 import com.iftrue.order.global.security.AuthenticatedUser;
+import com.iftrue.order.infrastructure.client.error.OrderFeignErrorDecoder;
 import feign.RequestInterceptor;
+import feign.codec.ErrorDecoder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;
@@ -17,8 +19,7 @@ public class FeignConfig {
     @Bean
     public RequestInterceptor authenticationHeaderInterceptor() {
         return requestTemplate -> {
-            Authentication authentication =
-                    SecurityContextHolder.getContext().getAuthentication();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
             if (authentication == null
                     || !authentication.isAuthenticated()
@@ -26,22 +27,18 @@ public class FeignConfig {
                 return;
             }
 
-            requestTemplate.header(
-                    USER_ID_HEADER,
-                    user.userId().toString()
-            );
+            requestTemplate.header(USER_ID_HEADER, user.userId().toString());
 
-            requestTemplate.header(
-                    USER_ROLE_HEADER,
-                    user.role()
-            );
+            requestTemplate.header(USER_ROLE_HEADER, user.role());
 
             if (user.companyId() != null) {
-                requestTemplate.header(
-                        USER_COMPANY_ID_HEADER,
-                        user.companyId().toString()
-                );
+                requestTemplate.header(USER_COMPANY_ID_HEADER, user.companyId().toString());
             }
         };
+    }
+
+    @Bean
+    public ErrorDecoder orderFeignErrorDecoder() {
+        return new OrderFeignErrorDecoder();
     }
 }
