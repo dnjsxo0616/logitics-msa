@@ -8,7 +8,6 @@ import com.iftrue.delivery.presentation.dto.delivery.DeliveryCreateRequest;
 import com.iftrue.delivery.presentation.dto.delivery.DeliveryCreateResponse;
 import com.iftrue.delivery.presentation.dto.delivery.DeliveryIdResponse;
 import com.iftrue.delivery.presentation.dto.delivery.DeliveryResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +20,6 @@ import java.util.UUID;
 @RequestMapping("/api/v1")
 public class DeliveryController {
     private final DeliveryCreateService deliveryCreateService;
-
-    @PostMapping("/internal/deliveries")
-    public ResponseEntity<ApiResponse<DeliveryCreateResponse>> createDelivery(@Valid @RequestBody DeliveryCreateRequest request) {
-        DeliveryCreateResult deliveryCreateResult = deliveryCreateService.create(request.toCommand());
-        DeliveryCreateResponse deliveryCreateResponse = DeliveryCreateResponse.from(deliveryCreateResult);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(HttpStatus.CREATED.value(), deliveryCreateResponse));
-    }
 
     @GetMapping("/deliveries/{deliveryId}")
     public ResponseEntity<ApiResponse<DeliveryResponse>> getDelivery(@PathVariable("deliveryId") UUID deliveryId) {

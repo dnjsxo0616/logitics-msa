@@ -64,7 +64,8 @@ CREATE TABLE delivery_schema.p_delivery
                           'MOVING_BETWEEN_HUBS',
                           'ARRIVED_AT_DESTINATION_HUB',
                           'MOVING_TO_COMPANY',
-                          'DELIVERED'
+                          'DELIVERED',
+                          'CANCELLED'
             )),
 
     CONSTRAINT fk_delivery_company_manager
