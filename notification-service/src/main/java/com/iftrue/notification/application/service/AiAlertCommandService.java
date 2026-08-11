@@ -12,6 +12,7 @@ import com.iftrue.notification.infrastructure.client.order.dto.OrderStatus;
 import com.iftrue.notification.presentation.dto.DeliveryCreatedRequest;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +26,6 @@ public class AiAlertCommandService {
     private final AiAlertRepository aiAlertRepository;
     private final OrderClient orderClient;
 
-    @Transactional
     public AiAlert create(DeliveryCreatedRequest request) {
         return aiAlertRepository.findByDeliveryId(request.deliveryId())
                 .orElseGet(() -> createNewAlert(request));
@@ -57,7 +57,16 @@ public class AiAlertCommandService {
                 request.toDeliveryPayload()
         );
 
-        return aiAlertRepository.save(aiAlert);
+        return saveOrFindExisting(aiAlert);
+    }
+
+    private AiAlert saveOrFindExisting(AiAlert aiAlert) {
+        try {
+            return aiAlertRepository.saveAndFlush(aiAlert);
+        } catch (DataIntegrityViolationException exception) {
+            return aiAlertRepository.findByDeliveryId(aiAlert.getDeliveryId())
+                    .orElseThrow(() -> exception);
+        }
     }
 
     private OrderNotificationContext getOrderContext(UUID orderId) {
