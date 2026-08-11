@@ -3,6 +3,7 @@ package com.iftrue.hub.global.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -23,6 +24,18 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = exception.getErrorCode();
 
         log.warn("[Hub] 비즈니스 로직 에러: code={}, message={}", errorCode.getCode(), errorCode.getMessage());
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ErrorResponse.of(errorCode));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException exception) {
+
+        ErrorCode errorCode = ErrorCode.FORBIDDEN;
+
+        log.warn("[Hub] 접근 권한 없음: {}", exception.getMessage());
 
         return ResponseEntity
                 .status(errorCode.getStatus())

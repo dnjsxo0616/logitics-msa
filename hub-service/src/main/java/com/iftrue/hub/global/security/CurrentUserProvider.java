@@ -15,10 +15,6 @@ public class CurrentUserProvider {
         return getAuthenticatedUser().userId();
     }
 
-    public String getCurrentUserRole() {
-        return getAuthenticatedUser().role();
-    }
-
     private AuthenticatedUser getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()
