@@ -1,5 +1,7 @@
 package com.iftrue.notification.domain.common;
 
+import com.iftrue.notification.global.exception.BusinessException;
+import com.iftrue.notification.global.exception.NotificationErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
@@ -11,7 +13,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
-import java.util.Objects;
 
 @Getter
 @MappedSuperclass
@@ -46,10 +47,18 @@ public abstract class BaseEntity {
 
     public void delete(String deletedBy) {
         if (isDeleted()) {
-            throw new IllegalStateException("이미 삭제된 데이터입니다.");
+            throw new BusinessException(NotificationErrorCode.INVALID_INPUT);
         }
 
+        validateDeletedBy(deletedBy);
+
         this.deletedAt = Instant.now();
-        this.deletedBy = Objects.requireNonNull(deletedBy, "삭제자는 필수입니다.");
+        this.deletedBy = deletedBy;
+    }
+
+    private static void validateDeletedBy(String deletedBy) {
+        if (deletedBy == null || deletedBy.isBlank()) {
+            throw new BusinessException(NotificationErrorCode.INVALID_INPUT);
+        }
     }
 }

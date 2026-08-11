@@ -1,6 +1,8 @@
 package com.iftrue.notification.domain.aialert;
 
 import com.iftrue.notification.domain.common.BaseEntity;
+import com.iftrue.notification.global.exception.BusinessException;
+import com.iftrue.notification.global.exception.NotificationErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,7 +20,6 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.UUID;
 
 @Getter
@@ -70,9 +71,9 @@ public class AiAlert extends BaseEntity {
             UUID deliveryId,
             DeliveryPayload deliveryPayload
     ) {
-        this.orderId = Objects.requireNonNull(orderId, "주문 ID는 필수입니다.");
-        this.deliveryId = Objects.requireNonNull(deliveryId, "배송 ID는 필수입니다.");
-        this.deliveryPayload = Objects.requireNonNull(deliveryPayload, "배송 정보는 필수입니다.");
+        this.orderId = orderId;
+        this.deliveryId = deliveryId;
+        this.deliveryPayload = deliveryPayload;
         this.status = AiAlertStatus.PENDING;
         this.retryCount = 0;
     }
@@ -82,6 +83,10 @@ public class AiAlert extends BaseEntity {
             UUID deliveryId,
             DeliveryPayload deliveryPayload
     ) {
+        validateRequired(orderId);
+        validateRequired(deliveryId);
+        validateRequired(deliveryPayload);
+
         return new AiAlert(orderId, deliveryId, deliveryPayload);
     }
 
@@ -99,32 +104,37 @@ public class AiAlert extends BaseEntity {
             Instant finalDeadline
     ) {
         validateStatus(AiAlertStatus.PROCESSING);
+        validateText(prompt);
+        validateText(aiResponse);
+        validateRequired(finalDeadline);
 
-        this.prompt = requireText(prompt, "AI 프롬프트는 필수입니다.");
-        this.aiResponse = requireText(aiResponse, "AI 응답은 필수입니다.");
-        this.finalDeadline = Objects.requireNonNull(finalDeadline, "최종 발송 시한은 필수입니다.");
+        this.prompt = prompt;
+        this.aiResponse = aiResponse;
+        this.finalDeadline = finalDeadline;
         this.status = AiAlertStatus.COMPLETED;
         this.errorMessage = null;
         this.nextRetryAt = null;
     }
 
-    public void markRetry(
+    public void scheduleRetry(
             String errorMessage,
             Instant nextRetryAt
     ) {
         validateStatus(AiAlertStatus.PROCESSING);
+        validateText(errorMessage);
+        validateRequired(nextRetryAt);
 
         this.retryCount++;
-        this.errorMessage = requireText(errorMessage, "오류 내용은 필수입니다.");
-        this.nextRetryAt = Objects.requireNonNull(nextRetryAt, "다음 재시도 시각은 필수입니다.");
+        this.errorMessage = errorMessage;
+        this.nextRetryAt = nextRetryAt;
         this.status = AiAlertStatus.RETRY_WAIT;
     }
 
     public void fail(String errorMessage) {
         validateStatus(AiAlertStatus.PROCESSING);
+        validateText(errorMessage);
 
-        this.retryCount++;
-        this.errorMessage = requireText(errorMessage, "오류 내용은 필수입니다.");
+        this.errorMessage = errorMessage;
         this.nextRetryAt = null;
         this.status = AiAlertStatus.FAILED;
     }
@@ -145,17 +155,19 @@ public class AiAlert extends BaseEntity {
                 .anyMatch(allowedStatus -> allowedStatus == this.status);
 
         if (!allowed) {
-            throw new IllegalStateException(
-                    "현재 AI 알림 상태에서는 요청한 작업을 수행할 수 없습니다. status=" + status
-            );
+            throw new BusinessException(NotificationErrorCode.INVALID_NOTIFICATION_STATUS);
         }
     }
 
-    private static String requireText(String value, String message) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(message);
+    private static void validateRequired(Object value) {
+        if (value == null) {
+            throw new BusinessException(NotificationErrorCode.INVALID_INPUT);
         }
+    }
 
-        return value;
+    private static void validateText(String value) {
+        if (value == null || value.isBlank()) {
+            throw new BusinessException(NotificationErrorCode.INVALID_INPUT);
+        }
     }
 }
