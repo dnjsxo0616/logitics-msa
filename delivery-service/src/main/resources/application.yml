@@ -7,3 +7,5 @@ spring:
   jpa:
     open-in-view: false
 
+internal:
+  service-key: ${INTERNAL_SERVICE_KEY:temp-secret-key}
