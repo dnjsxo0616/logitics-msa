@@ -10,3 +10,10 @@ eureka:
 service:
   jwt:
     secret-key: ${JWT_SECRET}
+
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
