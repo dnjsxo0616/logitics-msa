@@ -1,8 +1,10 @@
 package com.iftrue.order.application.service;
 
+import com.iftrue.order.global.response.ApiResponse;
 import com.iftrue.order.infrastructure.client.company.CompanyClient;
 import com.iftrue.order.infrastructure.client.delivery.DeliveryClient;
 import com.iftrue.order.infrastructure.client.delivery.dto.DeliveryCreateRequest;
+import com.iftrue.order.infrastructure.client.delivery.dto.DeliveryCreateResponse;
 import com.iftrue.order.infrastructure.client.product.ProductClient;
 import com.iftrue.order.infrastructure.client.product.dto.InventoryQuantityRequest;
 import com.iftrue.order.infrastructure.client.product.dto.ProductResponse;
@@ -48,11 +50,17 @@ public class OrderExternalService {
         productClient.restoreInventory(productId, request);
     }
 
-    public void createDelivery(DeliveryCreateRequest request) {
-        deliveryClient.createDelivery(request);
+    public UUID createDelivery(DeliveryCreateRequest request) {
+        ApiResponse<DeliveryCreateResponse> response = deliveryClient.createDelivery(request);
+
+        if (response == null || response.getData() == null) {
+            return null;
+        }
+
+        return response.getData().deliveryId();
     }
 
-    public void cancelDelivery(UUID orderId) {
-        deliveryClient.cancelDelivery(orderId);
+    public void cancelDelivery(UUID deliveryId) {
+        deliveryClient.cancelDelivery(deliveryId);
     }
 }

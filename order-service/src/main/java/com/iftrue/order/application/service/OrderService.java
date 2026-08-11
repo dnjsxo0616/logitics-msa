@@ -33,7 +33,7 @@ public class OrderService {
         UUID orderId = orderTransactionService.createPendingOrder(request);
 
         boolean inventoryDecreased = false;
-        boolean deliveryCreated = false;
+        UUID deliveryId = null;
 
         try {
             orderExternalService.checkCompanyExists(request.receiverCompanyId());
@@ -58,17 +58,16 @@ public class OrderService {
                     recipient
             );
 
-            orderExternalService.createDelivery(deliveryRequest);
-
-            deliveryCreated = true;
+            deliveryId = orderExternalService.createDelivery(deliveryRequest);
+            validateDeliveryId(deliveryId);
 
             orderStatusRetryService.confirmWithRetry(orderId);
 
         } catch (RuntimeException exception) {
             RuntimeException failure = exception;
 
-            if (deliveryCreated) {
-                failure = cancelDeliveryAndRestoreInventory(orderId, request, exception);
+            if (deliveryId != null) {
+                failure = cancelDeliveryAndRestoreInventory(deliveryId, orderId, request, exception);
             } else if (inventoryDecreased) {
                 failure = restoreInventory(orderId, request, exception);
             }
@@ -120,6 +119,12 @@ public class OrderService {
         }
     }
 
+    private void validateDeliveryId(UUID deliveryId) {
+        if (deliveryId == null) {
+            throw new BusinessException(OrderErrorCode.DELIVERY_CREATION_FAILED);
+        }
+    }
+
     private void validateProductSupplier(OrderCreateRequest request, ProductResponse product
     ) {
         if (!request.supplierCompanyId().equals(product.companyId())) {
@@ -167,12 +172,13 @@ public class OrderService {
     }
 
     private RuntimeException cancelDeliveryAndRestoreInventory(
+            UUID deliveryId,
             UUID orderId,
             OrderCreateRequest request,
             RuntimeException originalException
     ) {
         try {
-            orderExternalService.cancelDelivery(orderId);
+            orderExternalService.cancelDelivery(deliveryId);
 
         } catch (RuntimeException cancellationException) {
             BusinessException failure = new BusinessException(OrderErrorCode.DELIVERY_CANCELLATION_FAILED);
@@ -180,7 +186,7 @@ public class OrderService {
             failure.addSuppressed(originalException);
             failure.addSuppressed(cancellationException);
 
-            log.error("배송 취소 보상에 실패했습니다. orderId={}", orderId, failure);
+            log.error("배송 취소 보상에 실패했습니다. orderId={}, deliveryId={}", orderId, deliveryId, failure);
 
             return failure;
         }

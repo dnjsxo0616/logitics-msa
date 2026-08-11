@@ -1,6 +1,8 @@
 package com.iftrue.order.infrastructure.client.delivery;
 
+import com.iftrue.order.global.response.ApiResponse;
 import com.iftrue.order.infrastructure.client.delivery.dto.DeliveryCreateRequest;
+import com.iftrue.order.infrastructure.client.delivery.dto.DeliveryCreateResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,12 +14,12 @@ import java.util.UUID;
 public interface DeliveryClient {
 
     @PostMapping("/api/v1/internal/deliveries")
-    void createDelivery(
+    ApiResponse<DeliveryCreateResponse> createDelivery(
             @RequestBody DeliveryCreateRequest request
     );
 
-    @PostMapping("/api/v1/internal/deliveries/orders/{orderId}/cancel")
+    @PostMapping("/api/v1/internal/deliveries/{deliveryId}/cancel")
     void cancelDelivery(
-            @PathVariable("orderId") UUID orderId
+            @PathVariable("deliveryId") UUID deliveryId
     );
 }
