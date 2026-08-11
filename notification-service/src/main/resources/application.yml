@@ -17,10 +17,16 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         default_schema: notification_schema
+
+  flyway:
+    enabled: true
+    schemas: notification_schema
+    default-schema: notification_schema
+    locations: classpath:db/migration
 
 eureka:
   client:

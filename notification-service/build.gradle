@@ -29,7 +29,9 @@ dependencies {
 
 	// 알림 데이터 저장
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.flywaydb:flyway-core'
 	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 
 	// 서비스 디스커버리 및 Order 서비스 호출
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
