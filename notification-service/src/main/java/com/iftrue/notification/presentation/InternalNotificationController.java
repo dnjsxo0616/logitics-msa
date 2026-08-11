@@ -4,6 +4,7 @@ import com.iftrue.notification.application.service.AiAlertCommandService;
 import com.iftrue.notification.domain.aialert.AiAlert;
 import com.iftrue.notification.global.response.ApiResponse;
 import com.iftrue.notification.presentation.dto.AiAlertResponse;
+import com.iftrue.notification.presentation.dto.DeliveryCanceledRequest;
 import com.iftrue.notification.presentation.dto.DeliveryCreatedRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,5 +30,15 @@ public class InternalNotificationController {
 
         return ResponseEntity.accepted()
                 .body(ApiResponse.accepted(response));
+    }
+
+    @PostMapping("/delivery-canceled")
+    public ResponseEntity<ApiResponse<AiAlertResponse>> deliveryCanceled(
+            @RequestBody @Valid DeliveryCanceledRequest request
+    ) {
+        AiAlert aiAlert = aiAlertCommandService.cancel(request.deliveryId());
+        AiAlertResponse response = AiAlertResponse.from(aiAlert);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
