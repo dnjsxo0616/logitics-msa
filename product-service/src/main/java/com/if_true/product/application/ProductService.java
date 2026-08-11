@@ -125,6 +125,12 @@ public class ProductService {
 	}
 
 	@Transactional
+	public void decreaseInventory(UUID productId, Long quantity) {
+		Product product = findActiveProduct(productId);
+		product.decreaseQuantity(quantity);
+	}
+
+	@Transactional
 	public void restoreInventory(UUID productId, Long quantity) {
 		Product product = findActiveProduct(productId);
 		product.restoreQuantity(quantity);

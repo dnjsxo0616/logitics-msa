@@ -19,6 +19,15 @@ public class InternalInventoryController {
 
 	private final ProductService productService;
 
+	@PostMapping("/{productId}/decrease")
+	public ResponseEntity<Void> decrease(
+		@PathVariable UUID productId,
+		@Valid @RequestBody InventoryAdjustRequest request
+	) {
+		productService.decreaseInventory(productId, request.quantity());
+		return ResponseEntity.noContent().build();
+	}
+
 	@PostMapping("/{productId}/restore")
 	public ResponseEntity<Void> restore(
 		@PathVariable UUID productId,
