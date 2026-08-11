@@ -6,6 +6,7 @@ import com.iftrue.delivery.application.service.delivery.DeliveryCreateService;
 import com.iftrue.delivery.global.common.ApiResponse;
 import com.iftrue.delivery.presentation.dto.delivery.DeliveryCreateRequest;
 import com.iftrue.delivery.presentation.dto.delivery.DeliveryCreateResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class InternalDeliveryController {
     private final DeliveryCommandService deliveryCommandService;
 
     @PostMapping()
-    public ResponseEntity<ApiResponse<DeliveryCreateResponse>> createDelivery(@RequestBody DeliveryCreateRequest request) {
+    public ResponseEntity<ApiResponse<DeliveryCreateResponse>> createDelivery(@Valid @RequestBody DeliveryCreateRequest request) {
         DeliveryCreateResult deliveryCreateResult = deliveryCreateService.create(request.toCommand());
         DeliveryCreateResponse deliveryCreateResponse = DeliveryCreateResponse.from(deliveryCreateResult);
         return ResponseEntity.status(HttpStatus.CREATED)
