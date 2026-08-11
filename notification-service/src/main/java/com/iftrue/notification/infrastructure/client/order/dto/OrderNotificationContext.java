@@ -6,9 +6,8 @@ import java.util.UUID;
 public record OrderNotificationContext(
         UUID orderId,
         Instant orderedAt,
-        String orderName,
-        String orderSlackId,
-        UUID productId,
+        String requesterName,
+        String requesterEmail,
         String productName,
         int quantity,
         String requestMessage,
