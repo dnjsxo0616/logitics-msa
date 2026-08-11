@@ -117,6 +117,19 @@ public class Delivery extends DeletableEntity {
         deliveryRoutes.add(route);
     }
 
+    public void addSameHubRoute() {
+        if(!departureHubId.equals(destinationHubId)){
+            throw new IllegalStateException("동일 허브 배송이 아닙니다.");
+        }
+        addRoute(
+                departureHubId,
+                destinationHubId,
+                1,
+                BigDecimal.ZERO,
+                0
+        );
+    }
+
     // 허브 배송
     public void startRoute(UUID routeId, Instant departedAt) {
         if (status != DeliveryStatus.WAITING_AT_DEPARTURE_HUB &&

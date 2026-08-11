@@ -57,6 +57,11 @@ spring:
                 - Path=/api/v1/ai-alerts/**
                 - Path=/api/v1/slack-messages/**
 
+            - id: delivery-service
+              uri: lb://delivery-service
+              predicates:
+                - Path=/api/v1/deliveries/**, /api/v1/delivery-managers/**
+
         discovery:
           locator:
             enabled: true

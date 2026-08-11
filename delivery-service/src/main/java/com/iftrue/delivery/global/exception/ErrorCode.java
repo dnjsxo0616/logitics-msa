@@ -20,7 +20,9 @@ public enum ErrorCode {
     AUTH_FORBIDDEN(HttpStatus.FORBIDDEN, "접근 권한이 없습니다.", "U-002"),
 
     // Delivery
-    DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 배송입니다.", "D-001");
+    DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 배송입니다.", "D-001"),
+    DELIVERY_DUPLICATE(HttpStatus.CONFLICT, "해당 주문의 배송은 이미 존재합니다.", "D-002")
+    ;
 
     private final String message;
     private final HttpStatus status;
