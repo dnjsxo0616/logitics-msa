@@ -124,6 +124,12 @@ public class ProductService {
 		return InventoryResponse.from(product);
 	}
 
+	@Transactional
+	public void restoreInventory(UUID productId, Long quantity) {
+		Product product = findActiveProduct(productId);
+		product.restoreQuantity(quantity);
+	}
+
 	private Product findActiveProduct(UUID id) {
 		return productRepository.findByIdAndDeletedAtIsNull(id)
 			.orElseThrow(() -> new EntityNotFoundException("Product not found: " + id));
