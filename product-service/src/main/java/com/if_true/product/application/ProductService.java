@@ -5,6 +5,7 @@ import com.if_true.product.infrastructure.client.CompanyClient;
 import com.if_true.product.infrastructure.ProductRepository;
 import com.if_true.product.infrastructure.client.HubClient;
 import com.if_true.product.infrastructure.client.dto.CompanyResponse;
+import com.if_true.product.infrastructure.client.dto.HubExistsResponse;
 import com.if_true.product.presentation.dto.ProductRequest;
 import com.if_true.product.presentation.dto.ProductResponse;
 import com.if_true.product.presentation.dto.ProductUpdateRequest;
@@ -12,6 +13,7 @@ import com.if_true.product.presentation.dto.InventoryResponse;
 import com.if_true.product.presentation.dto.InternalProductResponse;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Objects;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
@@ -157,19 +159,23 @@ public class ProductService {
 		if (!hubValidationEnabled) {
 			return;
 		}
-		circuitBreakerFactory.create("hub-service").run(
-			() -> hubClient.getHub(hubId),
+		HubExistsResponse response = circuitBreakerFactory.create("hub-service").run(
+			() -> hubClient.existsHub(hubId),
 			throwable -> {
-				if (throwable instanceof FeignException.NotFound) {
-					throw new EntityNotFoundException("Hub not found: " + hubId);
+				if (throwable instanceof FeignException.Unauthorized) {
+					throw new IllegalStateException("Hub Service internal service key is invalid.");
 				}
-				throw new IllegalStateException("Failed to validate hub.");
+				throw new IllegalStateException("Failed to validate hub.", throwable);
 			}
 		);
+
+		if (!response.exists()) {
+			throw new EntityNotFoundException("Hub not found: " + hubId);
+		}
 	}
 
 	private void validateCompanyHub(CompanyResponse company, UUID hubId) {
-		if (!company.hubId().equals(hubId)) {
+		if (!Objects.equals(company.hubId(), hubId)) {
 			throw new IllegalArgumentException("Product hub must match company hub.");
 		}
 	}
