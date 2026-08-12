@@ -4,7 +4,6 @@ import com.iftrue.notification.domain.aialert.AiRequestPayload;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -25,7 +24,7 @@ public record DeliveryCreatedRequest(
         @NotNull @Valid ProductInfo product,
         String requestMessage,
         @NotNull @Valid LocationInfo departureHub,
-        @NotEmpty @Valid List<TransitHubInfo> transitHubs,
+        @NotNull @Valid List<TransitHubInfo> transitHubs,
         @NotBlank String destinationAddress,
         @NotNull @Valid ManagerInfo departureHubManager,
         @NotNull Instant deliveryCreatedAt

@@ -10,8 +10,6 @@ public enum NotificationErrorCode implements ErrorCode {
 
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "N-001", "알림을 찾을 수 없습니다."),
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "N-002", "입력값 검증에 실패했습니다."),
-    RETRY_NOT_ALLOWED(HttpStatus.CONFLICT, "N-003", "현재 상태에서는 재시도할 수 없습니다."),
-    RETRY_IN_PROGRESS(HttpStatus.CONFLICT, "N-004", "이미 재시도 처리 중입니다."),
     AI_PROCESSING_FAILED(HttpStatus.BAD_GATEWAY, "N-005", "AI 처리에 실패했습니다."),
     SLACK_MESSAGE_SEND_FAILED(HttpStatus.BAD_GATEWAY, "N-006", "Slack 메시지 발송에 실패했습니다."),
     UNAUTHENTICATED_REQUEST(HttpStatus.UNAUTHORIZED, "N-007", "인증되지 않은 요청입니다."),

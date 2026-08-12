@@ -17,7 +17,6 @@ public record AiDeadlineProperties(
         @NotNull LocalTime workStart,
         @NotNull LocalTime workEnd,
         @Positive int maxPromptChars,
-        @NotNull Duration retryDelay,
         @NotNull Duration processingInterval,
         @NotNull Duration processingTimeout
 ) {
@@ -31,7 +30,6 @@ public record AiDeadlineProperties(
             throw new IllegalArgumentException("AI 근무 시작 시각은 종료 시각보다 빨라야 합니다.");
         }
 
-        validatePositiveDuration(retryDelay, "AI 재시도 대기 시간");
         validatePositiveDuration(processingInterval, "AI 처리 주기");
         validatePositiveDuration(processingTimeout, "AI 처리 제한 시간");
     }

@@ -34,12 +34,12 @@ public class AiAlertProcessingTransactionService {
         Instant timeoutThreshold = now.minus(properties.processingTimeout());
 
         aiAlertRepository.findNextTimedOutProcessing(timeoutThreshold)
-                .ifPresent(aiAlert -> recoverTimedOut(aiAlert, now));
+                .ifPresent(this::recoverTimedOut);
     }
 
     @Transactional
     public Optional<AiAlertProcessingTarget> claimNext() {
-        return aiAlertRepository.findNextForProcessing(Instant.now())
+        return aiAlertRepository.findNextForProcessing()
                 .map(aiAlert -> {
                     aiAlert.startProcessing();
                     return new AiAlertProcessingTarget(
@@ -82,7 +82,7 @@ public class AiAlertProcessingTransactionService {
                 ));
     }
 
-    private void recoverTimedOut(AiAlert aiAlert, Instant now) {
+    private void recoverTimedOut(AiAlert aiAlert) {
         aiAlert.fail(TIMEOUT_ERROR_MESSAGE);
     }
 }

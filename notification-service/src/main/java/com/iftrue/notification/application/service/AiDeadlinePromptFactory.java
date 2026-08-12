@@ -7,8 +7,6 @@ import com.iftrue.notification.global.exception.NotificationErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.ZoneId;
-
 @Component
 @RequiredArgsConstructor
 public class AiDeadlinePromptFactory {
@@ -24,7 +22,7 @@ public class AiDeadlinePromptFactory {
                 .mapToInt(AiRequestPayload.TransitHub::expectedDurationMinutes)
                 .sum();
         String localArrival = request.requestedArrivalAt()
-                .atZone(ZoneId.of(properties.timezone()))
+                .atZone(properties.zoneId())
                 .toOffsetDateTime()
                 .toString();
 
