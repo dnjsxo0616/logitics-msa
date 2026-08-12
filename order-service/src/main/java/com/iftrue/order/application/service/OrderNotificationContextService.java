@@ -29,6 +29,10 @@ public class OrderNotificationContextService {
         return new OrderNotificationContextResponse(
                 order.getId(),
                 order.getCreatedAt(),
+                order.getRequestedArrivalAt(),
+                order.getCreatedBy(),
+                order.getReceiverCompanyId(),
+                order.getSupplierCompanyId(),
                 requester.name(),
                 requester.email(),
                 product.productName(),

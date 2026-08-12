@@ -8,6 +8,10 @@ import java.util.UUID;
 public record OrderNotificationContextResponse(
         UUID orderId,
         Instant orderedAt,
+        Instant requestedArrivalAt,
+        UUID requesterUserId,
+        UUID receiverCompanyId,
+        UUID supplierCompanyId,
         String requesterName,
         String requesterEmail,
         String productName,

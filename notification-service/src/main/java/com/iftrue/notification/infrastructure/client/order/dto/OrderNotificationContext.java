@@ -12,6 +12,10 @@ import java.util.UUID;
 public record OrderNotificationContext(
         @NotNull UUID orderId,
         @NotNull Instant orderedAt,
+        @NotNull Instant requestedArrivalAt,
+        @NotNull UUID requesterUserId,
+        @NotNull UUID receiverCompanyId,
+        @NotNull UUID supplierCompanyId,
         @NotBlank String requesterName,
         @NotBlank @Email String requesterEmail,
         @NotBlank String productName,
@@ -23,6 +27,10 @@ public record OrderNotificationContext(
     public OrderPayload toOrderPayload() {
         return new OrderPayload(
                 orderedAt,
+                requestedArrivalAt,
+                requesterUserId,
+                receiverCompanyId,
+                supplierCompanyId,
                 requesterName,
                 requesterEmail,
                 productName,
