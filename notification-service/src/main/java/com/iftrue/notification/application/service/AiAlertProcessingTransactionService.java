@@ -5,6 +5,7 @@ import com.iftrue.notification.application.dto.GeminiDeadlineResult;
 import com.iftrue.notification.domain.aialert.AiAlert;
 import com.iftrue.notification.domain.aialert.AiAlertRepository;
 import com.iftrue.notification.domain.aialert.AiAlertStatus;
+import com.iftrue.notification.global.config.AiDeadlineProperties;
 import com.iftrue.notification.global.exception.BusinessException;
 import com.iftrue.notification.global.exception.NotificationErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class AiAlertProcessingTransactionService {
 
     private final AiAlertRepository aiAlertRepository;
+    private final AiDeadlineProperties properties;
 
     @Transactional
     public Optional<AiAlertProcessingTarget> claimNext() {
@@ -50,10 +52,18 @@ public class AiAlertProcessingTransactionService {
     }
 
     @Transactional
-    public void fail(UUID aiAlertId, String errorMessage) {
+    public void handleFailure(UUID aiAlertId, String errorMessage, boolean retryable) {
         AiAlert aiAlert = findById(aiAlertId);
 
         if (aiAlert.getStatus() != AiAlertStatus.PROCESSING) {
+            return;
+        }
+
+        if (retryable && aiAlert.getRetryCount() == 0) {
+            aiAlert.scheduleRetry(
+                    errorMessage,
+                    Instant.now().plus(properties.retryDelay())
+            );
             return;
         }
 

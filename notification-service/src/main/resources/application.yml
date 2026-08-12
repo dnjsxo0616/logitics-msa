@@ -50,11 +50,7 @@ notification:
     work-start: "09:00"
     work-end: "18:00"
     max-prompt-chars: 4000
-    max-retry-count: 3
-    retry-delays:
-      - 1m
-      - 5m
-      - 15m
+    retry-delay: 1m
     processing-interval: 5s
     processing-timeout: 2m
 

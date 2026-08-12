@@ -21,23 +21,39 @@ public class AiAlertProcessor {
     }
 
     private void process(AiAlertProcessingTarget target) {
+        GeminiDeadlineResult result;
+
         try {
-            GeminiDeadlineResult result = deadlineGenerationService.generate(
+            result = deadlineGenerationService.generate(
                     target.orderPayload(),
                     target.deliveryPayload()
             );
-
-            transactionService.complete(target.aiAlertId(), result);
         } catch (RuntimeException exception) {
-            transactionService.fail(target.aiAlertId(), getErrorMessage(exception));
+            transactionService.handleFailure(
+                    target.aiAlertId(),
+                    getErrorMessage(exception),
+                    isRetryable(exception)
+            );
+            return;
         }
+
+        transactionService.complete(target.aiAlertId(), result);
     }
 
     private String getErrorMessage(RuntimeException exception) {
         if (exception instanceof BusinessException businessException) {
-            return businessException.getErrorCode().getMessage();
+            return businessException.getErrorCode().getCode()
+                    + ": "
+                    + businessException.getErrorCode().getMessage();
         }
 
-        return NotificationErrorCode.AI_PROCESSING_FAILED.getMessage();
+        return NotificationErrorCode.AI_PROCESSING_FAILED.getCode()
+                + ": "
+                + NotificationErrorCode.AI_PROCESSING_FAILED.getMessage();
+    }
+
+    private boolean isRetryable(RuntimeException exception) {
+        return exception instanceof BusinessException businessException
+                && businessException.getErrorCode() == NotificationErrorCode.AI_PROCESSING_FAILED;
     }
 }
