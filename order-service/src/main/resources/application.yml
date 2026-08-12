@@ -30,6 +30,9 @@ spring:
             connect-timeout: ${FEIGN_CONNECT_TIMEOUT:3000}
             read-timeout: ${FEIGN_READ_TIMEOUT:5000}
 
+internal:
+  service-key: ${INTERNAL_SERVICE_KEY}
+
 eureka:
   client:
     enabled: ${EUREKA_CLIENT_ENABLED:false}
