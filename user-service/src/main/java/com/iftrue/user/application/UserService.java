@@ -120,8 +120,8 @@ public class UserService {
                 );
         return UserResponse.from(user);
     }
-//    사용자 정보 수정
 
+//    사용자 정보 수정
     @Transactional
     public UserResponse updateUser(
             UUID id,

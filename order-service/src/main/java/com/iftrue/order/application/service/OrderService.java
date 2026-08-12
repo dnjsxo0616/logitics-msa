@@ -1,5 +1,6 @@
 package com.iftrue.order.application.service;
 
+import com.iftrue.order.application.dto.PendingOrderResult;
 import com.iftrue.order.global.exception.BusinessException;
 import com.iftrue.order.global.exception.OrderErrorCode;
 import com.iftrue.order.global.security.AuthenticatedUser;
@@ -7,11 +8,13 @@ import com.iftrue.order.infrastructure.client.delivery.dto.DeliveryCreateRequest
 import com.iftrue.order.infrastructure.client.product.dto.ProductResponse;
 import com.iftrue.order.infrastructure.client.user.dto.UserResponse;
 import com.iftrue.order.presentation.dto.OrderCreateRequest;
+import com.iftrue.order.presentation.dto.OrderCreateResponse;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -25,11 +28,12 @@ public class OrderService {
     private final OrderStatusRetryService orderStatusRetryService;
     private final OrderExternalService orderExternalService;
 
-    public void createOrder(OrderCreateRequest request, AuthenticatedUser user) {
+    public OrderCreateResponse createOrder(OrderCreateRequest request, AuthenticatedUser user) {
         validateCompanyScope(request, user);
         UUID recipientUserId = resolveRecipientUserId(request, user);
 
-        UUID orderId = orderTransactionService.createPendingOrder(request);
+        PendingOrderResult pendingOrder = orderTransactionService.createPendingOrder(request);
+        UUID orderId = pendingOrder.orderId();
 
         boolean inventoryDecreased = false;
         UUID deliveryId = null;
@@ -51,14 +55,18 @@ public class OrderService {
 
             DeliveryCreateRequest deliveryRequest = createDeliveryRequest(
                     orderId,
+                    pendingOrder.orderedAt(),
                     request,
-                    recipient
+                    recipient,
+                    product
             );
 
             deliveryId = orderExternalService.createDelivery(deliveryRequest);
             validateDeliveryId(deliveryId);
 
             orderStatusRetryService.confirmWithRetry(orderId);
+
+            return new OrderCreateResponse(orderId, deliveryId);
 
         } catch (RuntimeException exception) {
             RuntimeException failure = exception;
@@ -123,15 +131,26 @@ public class OrderService {
 
     private DeliveryCreateRequest createDeliveryRequest(
             UUID orderId,
+            Instant orderedAt,
             OrderCreateRequest request,
-            UserResponse recipient
+            UserResponse recipient,
+            ProductResponse product
     ) {
         return new DeliveryCreateRequest(
                 orderId,
+                orderedAt,
+                request.requestedArrivalAt(),
                 request.supplierCompanyId(),
                 request.receiverCompanyId(),
                 recipient.name(),
-                recipient.slackId()
+                recipient.email(),
+                recipient.slackId(),
+                new DeliveryCreateRequest.ProductInfo(
+                        request.productId(),
+                        product.productName(),
+                        request.quantity()
+                ),
+                request.requestMessage()
         );
     }
 

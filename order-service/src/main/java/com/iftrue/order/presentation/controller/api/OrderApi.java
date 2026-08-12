@@ -2,6 +2,7 @@ package com.iftrue.order.presentation.controller.api;
 
 import com.iftrue.order.global.security.AuthenticatedUser;
 import com.iftrue.order.presentation.dto.OrderCreateRequest;
+import com.iftrue.order.presentation.dto.OrderCreateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +22,8 @@ public interface OrderApi {
             description = "수령 업체가 상품을 주문합니다."
     )
     @PostMapping
-    ResponseEntity<Void> createOrder(@RequestBody @Valid OrderCreateRequest request,
-                                     @Parameter(hidden = true) @AuthenticationPrincipal AuthenticatedUser user);
+    ResponseEntity<OrderCreateResponse> createOrder(
+            @RequestBody @Valid OrderCreateRequest request,
+            @Parameter(hidden = true) @AuthenticationPrincipal AuthenticatedUser user
+    );
 }

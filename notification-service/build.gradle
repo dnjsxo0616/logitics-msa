@@ -20,6 +20,7 @@ repositories {
 
 ext {
 	set('springCloudVersion', '2025.0.3')
+	set('springAiVersion', '1.1.8')
 }
 
 dependencies {
@@ -33,9 +34,11 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 	runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 
-	// 서비스 디스커버리 및 Order 서비스 호출
+	// 서비스 디스커버리
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
-	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+	// Gemini AI
+	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai'
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
@@ -51,6 +54,7 @@ dependencies {
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
 	}
 }
 

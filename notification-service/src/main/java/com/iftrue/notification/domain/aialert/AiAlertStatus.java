@@ -4,7 +4,6 @@ public enum AiAlertStatus {
     PENDING,
     PROCESSING,
     COMPLETED,
-    RETRY_WAIT,
     FAILED,
     CANCELED
 }
