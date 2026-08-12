@@ -1,5 +1,7 @@
 package com.iftrue.order.application.service;
 
+import com.iftrue.order.global.exception.BusinessException;
+import com.iftrue.order.global.exception.OrderErrorCode;
 import com.iftrue.order.global.response.ApiResponse;
 import com.iftrue.order.infrastructure.client.company.CompanyClient;
 import com.iftrue.order.infrastructure.client.delivery.DeliveryClient;
@@ -10,6 +12,7 @@ import com.iftrue.order.infrastructure.client.product.dto.InventoryQuantityReque
 import com.iftrue.order.infrastructure.client.product.dto.ProductResponse;
 import com.iftrue.order.infrastructure.client.user.UserClient;
 import com.iftrue.order.infrastructure.client.user.dto.UserResponse;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,17 +26,22 @@ public class OrderExternalService {
     private final ProductClient productClient;
     private final UserClient userClient;
     private final DeliveryClient deliveryClient;
+    private final Validator validator;
 
     public void checkCompanyExists(UUID companyId) {
         companyClient.checkCompanyExists(companyId);
     }
 
     public ProductResponse getProduct(UUID productId) {
-        return productClient.getProduct(productId);
+        ProductResponse response = productClient.getProduct(productId);
+
+        return validateResponse(response, OrderErrorCode.INVALID_PRODUCT_INFO);
     }
 
     public UserResponse getRecipient(UUID userId) {
-        return userClient.getUser(userId);
+        UserResponse response = userClient.getUser(userId);
+
+        return validateResponse(response, OrderErrorCode.INVALID_RECIPIENT_INFO);
     }
 
     public void decreaseInventory(UUID orderId, UUID productId, int quantity
@@ -62,5 +70,13 @@ public class OrderExternalService {
 
     public void cancelDelivery(UUID deliveryId) {
         deliveryClient.cancelDelivery(deliveryId);
+    }
+
+    private <T> T validateResponse(T response, OrderErrorCode errorCode) {
+        if (response == null || !validator.validate(response).isEmpty()) {
+            throw new BusinessException(errorCode);
+        }
+
+        return response;
     }
 }
