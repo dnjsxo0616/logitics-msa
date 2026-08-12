@@ -142,8 +142,8 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       ZIPKIN_BASE_URL: http://zipkin:9411
-    ports:
-      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+
     depends_on:
       eureka-service:
         condition: service_healthy
@@ -178,8 +178,7 @@ services:
       ZIPKIN_BASE_URL: http://zipkin:9411
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
 
-    ports:
-      - "${HUB_SERVICE_PORT}:${HUB_SERVICE_PORT}"
+
     depends_on:
       eureka-service:
         condition: service_healthy
@@ -222,8 +221,6 @@ services:
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
 
 
-    ports:
-      - "${DELIVERY_SERVICE_PORT}:${DELIVERY_SERVICE_PORT}"
 
     depends_on:
       eureka-service:
@@ -255,8 +252,7 @@ services:
       ZIPKIN_BASE_URL: http://zipkin:9411
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
 
-    ports:
-      - "${ORDER_SERVICE_PORT}:${ORDER_SERVICE_PORT}"
+
     depends_on:
       eureka-service:
         condition: service_healthy
@@ -291,8 +287,7 @@ services:
       JPA_DDL_AUTO: ${JPA_DDL_AUTO}
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
 
-    ports:
-      - "${PRODUCT_SERVICE_PORT}:${PRODUCT_SERVICE_PORT}"
+
     depends_on:
       eureka-service:
         condition: service_healthy
@@ -327,8 +322,7 @@ services:
       JPA_DDL_AUTO: ${JPA_DDL_AUTO}
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
 
-    ports:
-      - "${COMPANY_SERVICE_PORT}:${COMPANY_SERVICE_PORT}"
+
     depends_on:
       eureka-service:
         condition: service_healthy
@@ -359,8 +353,6 @@ services:
       EUREKA_CLIENT_ENABLED: true
       INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
 
-    ports:
-      - "${NOTIFICATION_SERVICE_PORT}:${NOTIFICATION_SERVICE_PORT}"
 
     depends_on:
       eureka-service:
