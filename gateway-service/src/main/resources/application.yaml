@@ -23,7 +23,7 @@ spring:
             - id: hub-service
               uri: lb://hub-service
               predicates:
-                - Path=/api/v1/hubs/**
+                - Path=/api/v1/hubs/**, /api/v1/hub-routes/**
 
           # Company Service
             - id: company-service
@@ -44,12 +44,6 @@ spring:
               predicates:
                 - Path=/api/v1/orders/**
 
-          # Delivery Service
-            - id: delivery-service
-              uri: lb://delivery-service
-              predicates:
-                - Path=/api/v1/deliveries/**
-
           # Notification Service
             - id: notification-service
               uri: lb://notification-service
@@ -57,6 +51,7 @@ spring:
                 - Path=/api/v1/ai-alerts/**
                 - Path=/api/v1/slack-messages/**
 
+            # Delivery Service
             - id: delivery-service
               uri: lb://delivery-service
               predicates:
