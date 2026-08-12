@@ -4,14 +4,21 @@ import com.iftrue.hub.domain.Hub;
 import com.iftrue.hub.domain.HubRepository;
 import com.iftrue.hub.domain.HubRoute;
 import com.iftrue.hub.domain.HubRouteRepository;
+import com.iftrue.hub.global.security.AuthenticatedUser;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +39,19 @@ class HubDeleteCascadeIntegrationTest {
 
     @MockitoSpyBean
     private HubRouteRepository hubRouteRepository;
+
+    @BeforeEach
+    void setUpSecurityContext() {
+        AuthenticatedUser principal = new AuthenticatedUser(UUID.randomUUID(), "MASTER");
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                principal, null, List.of(new SimpleGrantedAuthority("ROLE_MASTER")));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     @DisplayName("허브를 삭제하면 해당 허브가 출발 또는 도착인 활성 경로만 함께 soft delete된다")

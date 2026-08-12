@@ -3,6 +3,8 @@ package com.iftrue.delivery.domain.delivery;
 import com.iftrue.delivery.domain.common.DeletableEntity;
 import com.iftrue.delivery.domain.deliverymanager.DeliveryManager;
 import com.iftrue.delivery.domain.deliveryroute.DeliveryRoute;
+import com.iftrue.delivery.global.exception.DeliveryServiceException;
+import com.iftrue.delivery.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -93,7 +95,7 @@ public class Delivery extends DeletableEntity {
     }
 
     // 배송 경로 구성
-    public void addRoute(
+    public DeliveryRoute addRoute(
             UUID departureHubId,
             UUID arrivalHubId,
             int sequence,
@@ -115,6 +117,20 @@ public class Delivery extends DeletableEntity {
         );
 
         deliveryRoutes.add(route);
+        return route;
+    }
+
+    public DeliveryRoute addSameHubRoute() {
+        if (!departureHubId.equals(destinationHubId)) {
+            throw new IllegalStateException("동일 허브 배송이 아닙니다.");
+        }
+        return addRoute(
+                departureHubId,
+                destinationHubId,
+                1,
+                BigDecimal.ZERO,
+                0
+        );
     }
 
     // 허브 배송
@@ -133,20 +149,14 @@ public class Delivery extends DeletableEntity {
 
     public void arriveRoute(
             UUID routeId,
-            Instant arrivedAt,
-            BigDecimal actualDistance,
-            Integer actualDuration
+            Instant arrivedAt
     ) {
         if (status != DeliveryStatus.MOVING_BETWEEN_HUBS) {
             throw new IllegalStateException("허브 간 이동 중인 배송의 경로만 도착 처리할 수 있습니다.");
         }
         DeliveryRoute route = findRoute(routeId);
 
-        route.arrive(
-                arrivedAt,
-                actualDistance,
-                actualDuration
-        );
+        route.arrive(arrivedAt);
 
 
         if (allRoutesArrived()) {
@@ -183,6 +193,17 @@ public class Delivery extends DeletableEntity {
         }
 
         this.status = DeliveryStatus.DELIVERED;
+    }
+
+    // 배송 취소
+    public void cancel() {
+        if (status != DeliveryStatus.WAITING_AT_DEPARTURE_HUB) {
+            throw new DeliveryServiceException(
+                    ErrorCode.DELIVERY_CANNOT_BE_CANCELLED
+            );
+        }
+
+        this.status = DeliveryStatus.CANCELLED;
     }
 
 

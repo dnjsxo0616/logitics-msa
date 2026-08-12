@@ -18,7 +18,7 @@ public class OrderController implements OrderApi {
     private final OrderService orderService;
 
     @Override
-    @PreAuthorize("hasAnyRole('MASTER', 'SUPPLER_MANAGER')")
+    @PreAuthorize("hasAnyRole('MASTER', 'SUPPLIER_MANAGER')")
     public ResponseEntity<Void> createOrder(OrderCreateRequest request,
                                             @AuthenticationPrincipal AuthenticatedUser user) {
         orderService.createOrder(request, user);

@@ -3,8 +3,10 @@ package com.iftrue.hub.global.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -22,6 +24,18 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = exception.getErrorCode();
 
         log.warn("[Hub] 비즈니스 로직 에러: code={}, message={}", errorCode.getCode(), errorCode.getMessage());
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ErrorResponse.of(errorCode));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException exception) {
+
+        ErrorCode errorCode = ErrorCode.FORBIDDEN;
+
+        log.warn("[Hub] 접근 권한 없음: {}", exception.getMessage());
 
         return ResponseEntity
                 .status(errorCode.getStatus())
@@ -58,6 +72,21 @@ public class GlobalExceptionHandler {
         errors.put(exception.getName(), requiredType + " 형식이어야 합니다.");
 
         log.warn("[Hub] 요청 인자 타입 불일치: param={}, value={}, requiredType={}", exception.getName(), exception.getValue(), requiredType);
+
+        return ResponseEntity
+                .status(errorCode.getStatus())
+                .body(ErrorResponse.of(errorCode, errors));
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingParamException(MissingServletRequestParameterException exception) {
+
+        ErrorCode errorCode = ErrorCode.INVALID_INPUT_VALUE;
+
+        Map<String, Object> errors = new LinkedHashMap<>();
+        errors.put(exception.getParameterName(), "필수 파라미터입니다.");
+
+        log.warn("[HubRoute-internal] 필수 요청 파라미터 누락: param={}", exception.getParameterName());
 
         return ResponseEntity
                 .status(errorCode.getStatus())
