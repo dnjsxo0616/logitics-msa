@@ -34,9 +34,7 @@ public class DeliveryCreateTransactionService {
                 command.requesterName(),
                 command.requesterSlackId()
         );
-
-        DeliveryManager departureHubManager = null;
-
+        
         if (shortestRoute.isSameHub()) {
             DeliveryRoute deliveryRoute = delivery.addSameHubRoute();
 
@@ -44,7 +42,6 @@ public class DeliveryCreateTransactionService {
                     deliveryManagerAssignmentService.nextHubManager();
 
             deliveryRoute.assignHubDeliveryManager(manager);
-            departureHubManager = manager;
 
         } else {
             for (HubRouteSegment segment : shortestRoute.segments()) {
@@ -61,14 +58,11 @@ public class DeliveryCreateTransactionService {
 
                 deliveryRoute.assignHubDeliveryManager(manager);
 
-                if (departureHubManager == null) {
-                    departureHubManager = manager;
-                }
             }
         }
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
-        return CreatedDelivery.from(savedDelivery, departureHubManager);
+        return CreatedDelivery.from(savedDelivery);
     }
 }
 
