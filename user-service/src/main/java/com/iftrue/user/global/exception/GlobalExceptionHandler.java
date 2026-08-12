@@ -3,6 +3,8 @@ package com.iftrue.user.global.exception;
 
 import com.iftrue.user.global.response.ApiResponse;
 import com.iftrue.user.global.response.ValidationError;
+import feign.FeignException;
+import org.springframework.http.MediaType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -93,6 +95,23 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(
                         ErrorCode.INTERNAL_SERVER_ERROR
                 ));
+    }
+
+    /**
+     * Feign Client Exception
+     */
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<String> handleFeignException(
+            FeignException e
+    ) {
+
+        log.error("Feign Client Error: status={}, message={}",
+                e.status(), e.getMessage());
+
+        return ResponseEntity
+                .status(e.status())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(e.contentUTF8());
     }
 
 

@@ -6,13 +6,20 @@ import com.iftrue.user.domain.UserRole;
 import com.iftrue.user.domain.UserStatus;
 import com.iftrue.user.global.exception.BusinessException;
 import com.iftrue.user.global.exception.ErrorCode;
+import com.iftrue.user.global.response.ApiResponse;
+import com.iftrue.user.infrastructure.client.delivery.DeliveryClient;
+import com.iftrue.user.infrastructure.client.delivery.DeliveryManagerType;
+import com.iftrue.user.infrastructure.client.delivery.dto.DeliveryManagerCreateRequest;
+import com.iftrue.user.infrastructure.client.delivery.dto.DeliveryManagerCreateResponse;
 import com.iftrue.user.presentation.request.SignUpRequest;
 import com.iftrue.user.presentation.request.UserUpdateRequest;
 import com.iftrue.user.presentation.response.UserResponse;
 import com.iftrue.user.presentation.response.UserStatusUpdateResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -28,6 +35,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService {
 
+    private final DeliveryClient deliveryClient;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -63,8 +71,16 @@ public class UserService {
                 .orElseThrow(() ->
                         new BusinessException(ErrorCode.USER_NOT_FOUND));
 
+
+        // 여기서 PENDING 여부 및 APPROVED/REJECTED 여부 검증
         user.changeStatus(status);
 
+        //승인된 배송 담당자만 Delivery Service에 생성
+        if (status == UserStatus.APPROVED
+                && user.getRole() == UserRole.DELIVERY_MANAGER) {
+            createDeliveryManager(user);
+
+        }
         return new UserStatusUpdateResponse(
                 user.getId(),
                 user.getStatus(),
@@ -89,17 +105,7 @@ public class UserService {
 //    사용자 목록 조회
     @Transactional(readOnly = true)
     public Page<UserResponse> getUsers(Pageable pageable) {
-        Authentication currentAuthentication =
-                SecurityContextHolder.getContext().getAuthentication();
-//        Principal → JWT에서 추출한 userId
-//
-//        Authorities → JWT의 role을 Spring Security 권한으로 변환한 값
-//
-//       Authenticated = true → Spring Security가 인증된 사용자로 인식
-        System.out.println("=== SECURITY CONTEXT ===");
-        System.out.println("Principal = " + currentAuthentication.getPrincipal());
-        System.out.println("Authorities = " + currentAuthentication.getAuthorities());
-        System.out.println("Authenticated = " + currentAuthentication.isAuthenticated());
+
         return userRepository.findAll(pageable)
                 .map(UserResponse::from);
     }
@@ -132,13 +138,10 @@ public class UserService {
                 request.nickname(),
                 request.email()
         );
-
-
         return UserResponse.from(user);
     }
 
 //    회원 탈퇴/비활성화
-
     @Transactional
     public void deleteUser(
             UUID targetUserId,
@@ -151,18 +154,14 @@ public class UserService {
                     ErrorCode.ACCESS_DENIED
             );
         }
-
         User user = userRepository.findById(targetUserId)
                 .orElseThrow(() ->
                         new BusinessException(
                                 ErrorCode.USER_NOT_FOUND
                         )
                 );
-
         user.withdraw();
     }
-
-
 
     private boolean isAdmin(UserRole role) {
 
@@ -185,5 +184,43 @@ public class UserService {
         }
     }
 
+    private void createDeliveryManager(User user) {
+
+        DeliveryManagerType type =
+                user.getHubId() == null
+                        ? DeliveryManagerType.HUB
+                        : DeliveryManagerType.COMPANY;
+
+        DeliveryManagerCreateRequest request =
+                new DeliveryManagerCreateRequest(
+                        user.getId(),
+                        user.getSlackId(),
+                        user.getHubId(),
+                        type
+                );
+
+        ApiResponse<DeliveryManagerCreateResponse> response =
+                deliveryClient.createDelivery(
+                        request
+                );
+        // 응답 자체가 없는 경우
+        if (response == null) {
+            throw new BusinessException(
+                    ErrorCode.DELIVERY_MANAGER_CREATE_FAILED
+            );
+        }
+        // data가 없는 경우
+        DeliveryManagerCreateResponse deliveryResponse =
+                response.getData();
+
+        if (deliveryResponse == null
+                || deliveryResponse.deliveryManagerId() == null) {
+
+            throw new BusinessException(
+                    ErrorCode.DELIVERY_MANAGER_CREATE_FAILED
+            );
+        }
+
+    }
 
 }

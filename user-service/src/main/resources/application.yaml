@@ -8,7 +8,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
 
     properties:
       hibernate:
@@ -20,3 +20,11 @@ spring:
 
 internal:
   service-key: ${INTERNAL_SERVICE_KEY}
+
+cloud:
+  openfeign:
+    client:
+      config:
+        default:
+          connect-timeout: ${FEIGN_CONNECT_TIMEOUT:3000}
+          read-timeout: ${FEIGN_READ_TIMEOUT:5000}
