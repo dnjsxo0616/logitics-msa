@@ -20,7 +20,8 @@ public enum NotificationErrorCode implements ErrorCode {
     INVALID_NOTIFICATION_STATUS(HttpStatus.CONFLICT, "N-010", "허용되지 않는 알림 상태입니다."),
     ORDER_STATUS_NOT_ALLOWED(HttpStatus.CONFLICT, "N-011", "AI 알림을 생성할 수 없는 주문 상태입니다."),
     ORDER_SERVICE_CALL_FAILED(HttpStatus.BAD_GATEWAY, "N-012", "Order 서비스 조회에 실패했습니다."),
-    AI_PROMPT_TOO_LONG(HttpStatus.PAYLOAD_TOO_LARGE, "N-013", "AI 프롬프트가 허용 길이를 초과했습니다.");
+    AI_PROMPT_TOO_LONG(HttpStatus.PAYLOAD_TOO_LARGE, "N-013", "AI 프롬프트가 허용 길이를 초과했습니다."),
+    AI_PROCESSING_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "N-014", "AI 처리 시간이 제한을 초과했습니다.");
 
     private final HttpStatus status;
     private final String code;

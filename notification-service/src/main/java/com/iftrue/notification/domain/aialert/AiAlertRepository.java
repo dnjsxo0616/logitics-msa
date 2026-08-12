@@ -27,4 +27,18 @@ public interface AiAlertRepository extends JpaRepository<AiAlert, UUID> {
             FOR UPDATE SKIP LOCKED
             """, nativeQuery = true)
     Optional<AiAlert> findNextForProcessing(@Param("now") Instant now);
+
+    @Query(value = """
+            SELECT *
+            FROM notification_schema.p_ai_alert
+            WHERE deleted_at IS NULL
+              AND status = 'PROCESSING'
+              AND updated_at <= :timeoutThreshold
+            ORDER BY updated_at
+            LIMIT 1
+            FOR UPDATE SKIP LOCKED
+            """, nativeQuery = true)
+    Optional<AiAlert> findNextTimedOutProcessing(
+            @Param("timeoutThreshold") Instant timeoutThreshold
+    );
 }

@@ -17,6 +17,7 @@ public class AiAlertProcessor {
 
     @Scheduled(fixedDelayString = "${notification.ai.processing-interval}")
     public void processNext() {
+        transactionService.recoverTimedOut();
         transactionService.claimNext().ifPresent(this::process);
     }
 

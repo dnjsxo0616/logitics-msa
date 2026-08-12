@@ -31,12 +31,18 @@ public record AiDeadlineProperties(
             throw new IllegalArgumentException("AI 근무 시작 시각은 종료 시각보다 빨라야 합니다.");
         }
 
-        if (retryDelay != null && (retryDelay.isZero() || retryDelay.isNegative())) {
-            throw new IllegalArgumentException("AI 재시도 대기 시간은 0보다 커야 합니다.");
-        }
+        validatePositiveDuration(retryDelay, "AI 재시도 대기 시간");
+        validatePositiveDuration(processingInterval, "AI 처리 주기");
+        validatePositiveDuration(processingTimeout, "AI 처리 제한 시간");
     }
 
     public ZoneId zoneId() {
         return ZoneId.of(timezone);
+    }
+
+    private static void validatePositiveDuration(Duration duration, String name) {
+        if (duration != null && (duration.isZero() || duration.isNegative())) {
+            throw new IllegalArgumentException(name + "은 0보다 커야 합니다.");
+        }
     }
 }

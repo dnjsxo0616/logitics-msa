@@ -20,8 +20,22 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AiAlertProcessingTransactionService {
 
+    private static final String TIMEOUT_ERROR_MESSAGE =
+            NotificationErrorCode.AI_PROCESSING_TIMEOUT.getCode()
+                    + ": "
+                    + NotificationErrorCode.AI_PROCESSING_TIMEOUT.getMessage();
+
     private final AiAlertRepository aiAlertRepository;
     private final AiDeadlineProperties properties;
+
+    @Transactional
+    public void recoverTimedOut() {
+        Instant now = Instant.now();
+        Instant timeoutThreshold = now.minus(properties.processingTimeout());
+
+        aiAlertRepository.findNextTimedOutProcessing(timeoutThreshold)
+                .ifPresent(aiAlert -> recoverTimedOut(aiAlert, now));
+    }
 
     @Transactional
     public Optional<AiAlertProcessingTarget> claimNext() {
@@ -75,5 +89,17 @@ public class AiAlertProcessingTransactionService {
                 .orElseThrow(() -> new BusinessException(
                         NotificationErrorCode.NOTIFICATION_NOT_FOUND
                 ));
+    }
+
+    private void recoverTimedOut(AiAlert aiAlert, Instant now) {
+        if (aiAlert.getRetryCount() == 0) {
+            aiAlert.scheduleRetry(
+                    TIMEOUT_ERROR_MESSAGE,
+                    now.plus(properties.retryDelay())
+            );
+            return;
+        }
+
+        aiAlert.fail(TIMEOUT_ERROR_MESSAGE);
     }
 }
