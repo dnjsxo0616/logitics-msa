@@ -11,8 +11,6 @@ public record AiRequestPayload(
         UUID supplierCompanyId,
         String requesterName,
         String requesterEmail,
-        String receiverName,
-        String receiverSlackId,
         UUID productId,
         String productName,
         int quantity,

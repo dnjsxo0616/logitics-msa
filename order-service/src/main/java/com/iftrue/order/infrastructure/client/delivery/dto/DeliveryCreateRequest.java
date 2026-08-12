@@ -17,8 +17,6 @@ public record DeliveryCreateRequest(
         @NotNull UUID recipientCompanyId,
         @NotBlank String requesterName,
         @NotBlank @Email String requesterEmail,
-        @NotBlank String receiverName,
-        @NotBlank String receiverSlackId,
         @NotNull @Valid ProductInfo product,
         String requestMessage
 ) {

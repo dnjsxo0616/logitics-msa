@@ -61,7 +61,6 @@ public class OrderService {
                     pendingOrder.orderedAt(),
                     request,
                     requester,
-                    recipient,
                     product
             );
 
@@ -138,7 +137,6 @@ public class OrderService {
             Instant orderedAt,
             OrderCreateRequest request,
             UserResponse requester,
-            UserResponse recipient,
             ProductResponse product
     ) {
         return new DeliveryCreateRequest(
@@ -149,8 +147,6 @@ public class OrderService {
                 request.receiverCompanyId(),
                 requester.name(),
                 requester.email(),
-                recipient.name(),
-                recipient.slackId(),
                 new DeliveryCreateRequest.ProductInfo(
                         request.productId(),
                         product.productName(),
