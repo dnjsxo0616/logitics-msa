@@ -50,3 +50,6 @@ msa:
   validation:
     hub:
       enabled: ${HUB_VALIDATION_ENABLED:false}
+
+internal:
+  service-key: ${INTERNAL_SERVICE_KEY:local-internal-service-key}
