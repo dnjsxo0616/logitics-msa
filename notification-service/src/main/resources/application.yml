@@ -47,7 +47,7 @@ notification:
     timezone: Asia/Seoul
     work-start: "09:00"
     work-end: "18:00"
-    max-prompt-chars: 8000
+    max-prompt-chars: 4000
     max-retry-count: 3
     retry-delays:
       - 1m
