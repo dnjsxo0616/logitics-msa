@@ -6,12 +6,17 @@ import com.iftrue.hub.application.dto.HubResponseDto;
 import com.iftrue.hub.application.dto.HubUpdateRequestDto;
 import com.iftrue.hub.domain.Hub;
 import com.iftrue.hub.domain.HubRepository;
+import com.iftrue.hub.global.config.CacheConfig;
 import com.iftrue.hub.global.exception.BusinessException;
 import com.iftrue.hub.global.exception.ErrorCode;
 import com.iftrue.hub.global.response.PageResponse;
 import com.iftrue.hub.global.security.CurrentUserProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -59,6 +64,7 @@ public class HubService {
         return HubResponseDto.from(savedHub);
     }
 
+    @Cacheable(cacheNames = CacheConfig.HUB, key = "#hubId")
     public HubResponseDto getHub(UUID hubId) {
         Hub hub = getHubOrThrow(hubId);
 
@@ -88,6 +94,7 @@ public class HubService {
         return PageResponse.from(hubPage);
     }
 
+    @CachePut(cacheNames = CacheConfig.HUB, key = "#hubId")
     @Transactional
     public HubResponseDto updateHub(UUID hubId, HubUpdateRequestDto request) {
         checkMasterRole();
@@ -102,6 +109,10 @@ public class HubService {
         return HubResponseDto.from(hub);
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.HUB, key = "#hubId"),
+            @CacheEvict(cacheNames = CacheConfig.HUB_ROUTE_PATH, allEntries = true)
+    })
     @Transactional
     public void deleteHub(UUID hubId) {
         checkMasterRole();

@@ -4,13 +4,18 @@ spring:
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
+      timeout: 2000ms
+      connect-timeout: 1000ms
+
 server:
   port: ${HUB_SERVICE_PORT}
+
 eureka:
   client:
     serviceUrl:
