@@ -19,4 +19,4 @@ spring:
     open-in-view: false
 
 internal:
-  service-key: ${INTERNAL_SERVICE_KEY}
+  service-key: ${INTERNAL_SERVICE_KEY:temp-secret-key}
