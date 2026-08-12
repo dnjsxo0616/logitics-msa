@@ -1,6 +1,7 @@
 package com.iftrue.hub.presentation;
 
 import com.iftrue.hub.application.HubRouteService;
+import com.iftrue.hub.application.dto.HubRouteAutoCreateRequestDto;
 import com.iftrue.hub.application.dto.HubRouteCreateRequestDto;
 import com.iftrue.hub.application.dto.HubRouteResponseDto;
 import com.iftrue.hub.application.dto.HubRouteUpdateRequestDto;
@@ -30,6 +31,17 @@ public class HubRouteController {
             @Valid @RequestBody HubRouteCreateRequestDto request
     ) {
         HubRouteResponseDto response = hubRouteService.createHubRoute(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.created(response));
+    }
+
+    @PostMapping("/auto")
+    public ResponseEntity<ApiResponse<HubRouteResponseDto>> createHubRouteAuto(
+            @Valid @RequestBody HubRouteAutoCreateRequestDto request
+    ) {
+        HubRouteResponseDto response = hubRouteService.createHubRouteAuto(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
