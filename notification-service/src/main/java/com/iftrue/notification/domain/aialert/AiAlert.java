@@ -39,6 +39,10 @@ public class AiAlert extends BaseEntity {
     private UUID deliveryId;
 
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "order_payload", columnDefinition = "jsonb")
+    private OrderPayload orderPayload;
+
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "delivery_payload", nullable = false, columnDefinition = "jsonb")
     private DeliveryPayload deliveryPayload;
 
@@ -69,10 +73,12 @@ public class AiAlert extends BaseEntity {
     private AiAlert(
             UUID orderId,
             UUID deliveryId,
+            OrderPayload orderPayload,
             DeliveryPayload deliveryPayload
     ) {
         this.orderId = orderId;
         this.deliveryId = deliveryId;
+        this.orderPayload = orderPayload;
         this.deliveryPayload = deliveryPayload;
         this.status = AiAlertStatus.PENDING;
         this.retryCount = 0;
@@ -81,13 +87,15 @@ public class AiAlert extends BaseEntity {
     public static AiAlert create(
             UUID orderId,
             UUID deliveryId,
+            OrderPayload orderPayload,
             DeliveryPayload deliveryPayload
     ) {
         validateRequired(orderId);
         validateRequired(deliveryId);
+        validateRequired(orderPayload);
         validateRequired(deliveryPayload);
 
-        return new AiAlert(orderId, deliveryId, deliveryPayload);
+        return new AiAlert(orderId, deliveryId, orderPayload, deliveryPayload);
     }
 
     public void startProcessing() {

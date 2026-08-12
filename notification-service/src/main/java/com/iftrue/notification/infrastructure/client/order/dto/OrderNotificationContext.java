@@ -1,16 +1,34 @@
 package com.iftrue.notification.infrastructure.client.order.dto;
 
+import com.iftrue.notification.domain.aialert.OrderPayload;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 import java.time.Instant;
 import java.util.UUID;
 
 public record OrderNotificationContext(
-        UUID orderId,
-        Instant orderedAt,
-        String requesterName,
-        String requesterEmail,
-        String productName,
-        int quantity,
-        String requestMessage,
-        OrderStatus status
+        @NotNull UUID orderId,
+        @NotNull Instant orderedAt,
+        @NotBlank String requesterName,
+        @NotBlank @Email String requesterEmail,
+        @NotBlank String productName,
+        @Positive int quantity,
+        @NotBlank String requestMessage,
+        @NotNull OrderStatus status
 ) {
+
+    public OrderPayload toOrderPayload() {
+        return new OrderPayload(
+                orderedAt,
+                requesterName,
+                requesterEmail,
+                productName,
+                quantity,
+                requestMessage,
+                status.name()
+        );
+    }
 }
