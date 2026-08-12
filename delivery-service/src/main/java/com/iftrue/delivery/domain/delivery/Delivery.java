@@ -95,7 +95,7 @@ public class Delivery extends DeletableEntity {
     }
 
     // 배송 경로 구성
-    public void addRoute(
+    public DeliveryRoute addRoute(
             UUID departureHubId,
             UUID arrivalHubId,
             int sequence,
@@ -117,13 +117,14 @@ public class Delivery extends DeletableEntity {
         );
 
         deliveryRoutes.add(route);
+        return route;
     }
 
-    public void addSameHubRoute() {
-        if(!departureHubId.equals(destinationHubId)){
+    public DeliveryRoute addSameHubRoute() {
+        if (!departureHubId.equals(destinationHubId)) {
             throw new IllegalStateException("동일 허브 배송이 아닙니다.");
         }
-        addRoute(
+        return addRoute(
                 departureHubId,
                 destinationHubId,
                 1,

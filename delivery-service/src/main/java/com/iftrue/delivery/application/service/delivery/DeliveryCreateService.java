@@ -2,8 +2,11 @@ package com.iftrue.delivery.application.service.delivery;
 
 import com.iftrue.delivery.application.dto.delivery.DeliveryCreateCommand;
 import com.iftrue.delivery.application.dto.delivery.DeliveryCreateResult;
+import com.iftrue.delivery.application.service.deliverymanager.DeliveryManagerAssignmentService;
 import com.iftrue.delivery.domain.delivery.Delivery;
 import com.iftrue.delivery.domain.delivery.DeliveryRepository;
+import com.iftrue.delivery.domain.deliverymanager.DeliveryManager;
+import com.iftrue.delivery.domain.deliveryroute.DeliveryRoute;
 import com.iftrue.delivery.global.exception.DeliveryServiceException;
 import com.iftrue.delivery.global.exception.ErrorCode;
 import com.iftrue.delivery.infrastructure.client.HubClient;
@@ -21,6 +24,7 @@ public class DeliveryCreateService {
 
     private final HubClient hubClient;
     private final DeliveryRepository deliveryRepository;
+    private final DeliveryManagerAssignmentService deliveryManagerAssignmentService;
 
 
     @Transactional
@@ -46,16 +50,27 @@ public class DeliveryCreateService {
         );
 
         if (shortestRoute.isSameHub()) {
-            delivery.addSameHubRoute();
+            DeliveryRoute deliveryRoute = delivery.addSameHubRoute();
+
+            DeliveryManager manager =
+                    deliveryManagerAssignmentService.nextHubManager();
+
+            deliveryRoute.assignHubDeliveryManager(manager);
+
         } else {
             for (HubRouteSegment segment : shortestRoute.segments()) {
-                delivery.addRoute(
+                DeliveryRoute deliveryRoute = delivery.addRoute(
                         segment.departureHubId(),
                         segment.arrivalHubId(),
                         segment.sequence(),
                         segment.distance(),
                         segment.duration()
                 );
+
+                DeliveryManager manager =
+                        deliveryManagerAssignmentService.nextHubManager();
+
+                deliveryRoute.assignHubDeliveryManager(manager);
             }
         }
 
