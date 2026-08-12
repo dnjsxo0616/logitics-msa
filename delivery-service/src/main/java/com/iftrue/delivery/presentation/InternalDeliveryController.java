@@ -21,7 +21,7 @@ public class InternalDeliveryController {
     private final DeliveryCreateService deliveryCreateService;
     private final DeliveryCommandService deliveryCommandService;
 
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<ApiResponse<DeliveryCreateResponse>> createDelivery(@Valid @RequestBody DeliveryCreateRequest request) {
         DeliveryCreateResult deliveryCreateResult = deliveryCreateService.create(request.toCommand());
         DeliveryCreateResponse deliveryCreateResponse = DeliveryCreateResponse.from(deliveryCreateResult);

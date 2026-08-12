@@ -5,26 +5,31 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public record DeliveryCreateRequest(
         @NotNull UUID orderId,
-        @NotNull UUID departureHubId,
-        @NotNull UUID destinationHubId,
-        @NotBlank String deliveryAddress,
-        @NotBlank String recipientName,
-        @NotBlank String recipientSlackId,
+        @NotNull Instant orderedAt,
+        @NotNull Instant requestedArrivalAt,
+        @NotNull UUID supplierCompanyId,
+        @NotNull UUID recipientCompanyId,
+        @NotBlank String requesterName,
+        @NotBlank String requesterEmail,
+        @NotBlank String requesterSlackId,
         @NotNull ProductInfo productInfo,
-        @NotBlank String requestMessage
+        String requestMessage
 ) {
     public DeliveryCreateCommand toCommand() {
         return new DeliveryCreateCommand(
                 orderId,
-                departureHubId,
-                destinationHubId,
-                deliveryAddress,
-                recipientName,
-                recipientSlackId,
+                orderedAt,
+                requestedArrivalAt,
+                supplierCompanyId,
+                recipientCompanyId,
+                requesterName,
+                requesterEmail,
+                requesterSlackId,
                 productInfo.productId(),
                 productInfo.name(),
                 productInfo.quantity(),
