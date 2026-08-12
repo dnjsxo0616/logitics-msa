@@ -5,6 +5,7 @@ CREATE TABLE delivery_schema.p_delivery_manager
     hub_id     UUID,
     type       VARCHAR(50)  NOT NULL,
     sequence   INTEGER      NOT NULL,
+    last_assigned_at TIMESTAMPTZ,
 
     created_at TIMESTAMPTZ  NOT NULL,
     created_by VARCHAR(100) NOT NULL,

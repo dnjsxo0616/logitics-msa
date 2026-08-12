@@ -95,7 +95,7 @@ public class Delivery extends DeletableEntity {
     }
 
     // 배송 경로 구성
-    public void addRoute(
+    public DeliveryRoute addRoute(
             UUID departureHubId,
             UUID arrivalHubId,
             int sequence,
@@ -117,13 +117,14 @@ public class Delivery extends DeletableEntity {
         );
 
         deliveryRoutes.add(route);
+        return route;
     }
 
-    public void addSameHubRoute() {
-        if(!departureHubId.equals(destinationHubId)){
+    public DeliveryRoute addSameHubRoute() {
+        if (!departureHubId.equals(destinationHubId)) {
             throw new IllegalStateException("동일 허브 배송이 아닙니다.");
         }
-        addRoute(
+        return addRoute(
                 departureHubId,
                 destinationHubId,
                 1,
@@ -148,20 +149,14 @@ public class Delivery extends DeletableEntity {
 
     public void arriveRoute(
             UUID routeId,
-            Instant arrivedAt,
-            BigDecimal actualDistance,
-            Integer actualDuration
+            Instant arrivedAt
     ) {
         if (status != DeliveryStatus.MOVING_BETWEEN_HUBS) {
             throw new IllegalStateException("허브 간 이동 중인 배송의 경로만 도착 처리할 수 있습니다.");
         }
         DeliveryRoute route = findRoute(routeId);
 
-        route.arrive(
-                arrivedAt,
-                actualDistance,
-                actualDuration
-        );
+        route.arrive(arrivedAt);
 
 
         if (allRoutesArrived()) {

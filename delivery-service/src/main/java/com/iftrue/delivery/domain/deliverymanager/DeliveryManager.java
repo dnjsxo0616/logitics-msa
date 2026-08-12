@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -30,6 +31,9 @@ public class DeliveryManager extends DeletableEntity {
 
     @Column(name = "sequence", nullable = false)
     private int sequence;
+
+    @Column(name = "last_assigned_at")
+    private Instant lastAssignedAt;
 
     private DeliveryManager(
             UUID id,
@@ -63,6 +67,10 @@ public class DeliveryManager extends DeletableEntity {
                 type,
                 sequence
         );
+    }
+
+    public void markAssignedAt() {
+        this.lastAssignedAt = Instant.now();
     }
 
     // 업체 배송 담당자 검증
@@ -123,5 +131,6 @@ public class DeliveryManager extends DeletableEntity {
 
         return value;
     }
+
 
 }
