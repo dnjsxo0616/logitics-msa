@@ -54,6 +54,7 @@ public class AiAlertCommandService {
         AiAlert aiAlert = AiAlert.create(
                 orderContext.orderId(),
                 request.deliveryId(),
+                orderContext.toOrderPayload(),
                 request.toDeliveryPayload()
         );
 
