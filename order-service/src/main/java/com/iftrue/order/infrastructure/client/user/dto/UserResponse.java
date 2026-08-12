@@ -5,6 +5,7 @@ import java.util.UUID;
 public record UserResponse(
         UUID companyId,
         String name,
+        String email,
         String slackId
 ) {
 }
