@@ -1,0 +1,35 @@
+server:
+  port: ${NOTIFICATION_SERVICE_PORT:19008}
+
+spring:
+  application:
+    name: notification-service
+
+  config:
+    import: optional:file:./.env[.properties]
+
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5433/logistics}
+    username: ${POSTGRES_USER:iftrue}
+    password: ${POSTGRES_PASSWORD:iftrue1234}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: notification_schema
+
+  flyway:
+    enabled: true
+    schemas: notification_schema
+    default-schema: notification_schema
+    locations: classpath:db/migration
+
+eureka:
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:false}
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:19090/eureka}
