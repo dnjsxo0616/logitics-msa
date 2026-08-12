@@ -108,6 +108,9 @@ services:
       GATEWAY_PORT: ${GATEWAY_PORT}
       EUREKA_URI: http://eureka-service:${EUREKA_PORT}/eureka
       JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
     depends_on:
@@ -173,6 +176,8 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       ZIPKIN_BASE_URL: http://zipkin:9411
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+
     ports:
       - "${HUB_SERVICE_PORT}:${HUB_SERVICE_PORT}"
     depends_on:
@@ -214,10 +219,148 @@ services:
       ZIPKIN_BASE_URL: http://zipkin:9411
 
       # 내부 서비스 호출 인증키를 사용한다면
-      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+
 
     ports:
       - "${DELIVERY_SERVICE_PORT}:${DELIVERY_SERVICE_PORT}"
+
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - msa-net
+  # ─────────────────────────────────────────────
+  # Order Service (주문 생성/조회/상태 관리)
+  # ─────────────────────────────────────────────
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      ORDER_SERVICE_PORT: ${ORDER_SERVICE_PORT}
+      EUREKA_URI: http://eureka-service:${EUREKA_PORT}/eureka
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ZIPKIN_BASE_URL: http://zipkin:9411
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+
+    ports:
+      - "${ORDER_SERVICE_PORT}:${ORDER_SERVICE_PORT}"
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - msa-net
+
+
+  # ─────────────────────────────────────────────
+  # Product Service (상품 관리)
+  # ─────────────────────────────────────────────
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      PRODUCT_SERVICE_PORT: ${PRODUCT_SERVICE_PORT}
+      EUREKA_URI: http://eureka-service:${EUREKA_PORT}/eureka
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}?currentSchema=product_schema
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ZIPKIN_ENDPOINT: http://zipkin:9411
+      GATEWAY_INTERNAL_SECRET: ${GATEWAY_INTERNAL_SECRET}
+      HUB_VALIDATION_ENABLED: ${HUB_VALIDATION_ENABLED}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+
+    ports:
+      - "${PRODUCT_SERVICE_PORT}:${PRODUCT_SERVICE_PORT}"
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - msa-net
+
+
+  # ─────────────────────────────────────────────
+  # Company Service (업체 관리)
+  # ─────────────────────────────────────────────
+
+  company-service:
+    build:
+      context: ./company-service
+      dockerfile: Dockerfile
+    container_name: company-service
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      COMPANY_SERVICE_PORT: ${COMPANY_SERVICE_PORT}
+      EUREKA_URI: http://eureka-service:${EUREKA_PORT}/eureka
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}?currentSchema=company_schema
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ZIPKIN_ENDPOINT: http://zipkin:9411
+      GATEWAY_INTERNAL_SECRET: ${GATEWAY_INTERNAL_SECRET}
+      HUB_VALIDATION_ENABLED: ${HUB_VALIDATION_ENABLED}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+
+    ports:
+      - "${COMPANY_SERVICE_PORT}:${COMPANY_SERVICE_PORT}"
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - msa-net
+  # ─────────────────────────────────────────────
+  # Notification Service (알림 관리)
+  # ─────────────────────────────────────────────
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      NOTIFICATION_SERVICE_PORT: ${NOTIFICATION_SERVICE_PORT}
+      EUREKA_URI: http://eureka-service:${EUREKA_PORT}/eureka
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ZIPKIN_ENDPOINT: http://zipkin:9411
+      EUREKA_CLIENT_ENABLED: true
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+
+    ports:
+      - "${NOTIFICATION_SERVICE_PORT}:${NOTIFICATION_SERVICE_PORT}"
 
     depends_on:
       eureka-service:
