@@ -17,7 +17,9 @@ public enum NotificationErrorCode implements ErrorCode {
     UNAUTHENTICATED_REQUEST(HttpStatus.UNAUTHORIZED, "N-007", "인증되지 않은 요청입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "N-008", "요청을 처리할 권한이 없습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "N-009", "서버 내부 오류가 발생했습니다."),
-    INVALID_NOTIFICATION_STATUS(HttpStatus.CONFLICT, "N-010", "허용되지 않는 알림 상태입니다.");
+    INVALID_NOTIFICATION_STATUS(HttpStatus.CONFLICT, "N-010", "허용되지 않는 알림 상태입니다."),
+    ORDER_STATUS_NOT_ALLOWED(HttpStatus.CONFLICT, "N-011", "AI 알림을 생성할 수 없는 주문 상태입니다."),
+    ORDER_SERVICE_CALL_FAILED(HttpStatus.BAD_GATEWAY, "N-012", "Order 서비스 조회에 실패했습니다.");
 
     private final HttpStatus status;
     private final String code;
