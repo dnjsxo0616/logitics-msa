@@ -4,13 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @AllArgsConstructor
 public class ApiResponse<T> {
 
-    private LocalDateTime timestamp;
+    private Instant timestamp;
     private int status;
     private String code;
     private T data;
@@ -25,7 +25,7 @@ public class ApiResponse<T> {
 
     private static <T> ApiResponse<T> of(HttpStatus status, T data) {
         return new ApiResponse<>(
-                LocalDateTime.now(),
+                Instant.now(),
                 status.value(),
                 "success",
                 data

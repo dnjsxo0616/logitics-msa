@@ -16,6 +16,7 @@ spring:
 server:
   port: ${USER_SERVICE_PORT}
 
+
 eureka:
   client:
     serviceUrl:
@@ -24,5 +25,6 @@ eureka:
 
 service:
   jwt:
-    access-expiration: 3600000
     secret-key: ${JWT_SECRET}
+    access-expiration: ${JWT_ACCESS_EXPIRATION:3600000}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}

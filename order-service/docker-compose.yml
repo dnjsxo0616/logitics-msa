@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: order_db
-      POSTGRES_USER: order
-      POSTGRES_PASSWORD: order1234
+      POSTGRES_DB: logistics
+      POSTGRES_USER: iftrue
+      POSTGRES_PASSWORD: iftrue1234
     ports:
       - "5432:5432"
     volumes:

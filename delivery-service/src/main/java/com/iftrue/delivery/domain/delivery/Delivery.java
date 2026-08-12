@@ -3,6 +3,8 @@ package com.iftrue.delivery.domain.delivery;
 import com.iftrue.delivery.domain.common.DeletableEntity;
 import com.iftrue.delivery.domain.deliverymanager.DeliveryManager;
 import com.iftrue.delivery.domain.deliveryroute.DeliveryRoute;
+import com.iftrue.delivery.global.exception.DeliveryServiceException;
+import com.iftrue.delivery.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -14,6 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
+import static com.iftrue.delivery.domain.common.DomainValidator.requireNonNull;
+import static com.iftrue.delivery.domain.common.DomainValidator.requireText;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -64,9 +69,9 @@ public class Delivery extends DeletableEntity {
             String recipientName,
             String recipientSlackId
     ) {
-        this.orderId = Objects.requireNonNull(orderId, "주문 ID는 필수입니다."); // TODO: 예외처리는 정리하여 추후 맞는 예외로 모두 수정
-        this.departureHubId = Objects.requireNonNull(departureHubId, "출발 허브 ID는 필수입니다.");
-        this.destinationHubId = Objects.requireNonNull(destinationHubId, "도착 허브 ID는 필수입니다.");
+        this.orderId = requireNonNull(orderId, "주문 ID는 필수입니다."); // TODO: 예외처리는 정리하여 추후 맞는 예외로 모두 수정
+        this.departureHubId = requireNonNull(departureHubId, "출발 허브 ID는 필수입니다.");
+        this.destinationHubId = requireNonNull(destinationHubId, "도착 허브 ID는 필수입니다.");
         this.deliveryAddress = requireText(deliveryAddress, "배송 주소는 필수입니다.");
         this.recipientName = requireText(recipientName, "수령인 이름은 필수입니다.");
         this.recipientSlackId = requireText(recipientSlackId, "수령인 Slack ID는 필수입니다.");
@@ -93,7 +98,7 @@ public class Delivery extends DeletableEntity {
     }
 
     // 배송 경로 구성
-    public void addRoute(
+    public DeliveryRoute addRoute(
             UUID departureHubId,
             UUID arrivalHubId,
             int sequence,
@@ -115,6 +120,20 @@ public class Delivery extends DeletableEntity {
         );
 
         deliveryRoutes.add(route);
+        return route;
+    }
+
+    public DeliveryRoute addSameHubRoute() {
+        if (!departureHubId.equals(destinationHubId)) {
+            throw new IllegalStateException("동일 허브 배송이 아닙니다.");
+        }
+        return addRoute(
+                departureHubId,
+                destinationHubId,
+                1,
+                BigDecimal.ZERO,
+                0
+        );
     }
 
     // 허브 배송
@@ -133,20 +152,14 @@ public class Delivery extends DeletableEntity {
 
     public void arriveRoute(
             UUID routeId,
-            Instant arrivedAt,
-            BigDecimal actualDistance,
-            Integer actualDuration
+            Instant arrivedAt
     ) {
         if (status != DeliveryStatus.MOVING_BETWEEN_HUBS) {
             throw new IllegalStateException("허브 간 이동 중인 배송의 경로만 도착 처리할 수 있습니다.");
         }
         DeliveryRoute route = findRoute(routeId);
 
-        route.arrive(
-                arrivedAt,
-                actualDistance,
-                actualDuration
-        );
+        route.arrive(arrivedAt);
 
 
         if (allRoutesArrived()) {
@@ -157,7 +170,7 @@ public class Delivery extends DeletableEntity {
 
     // 업체 배송
     public void assignCompanyManager(DeliveryManager manager) {
-        Objects.requireNonNull(manager, "배송담당자는 필수입니다.");
+        requireNonNull(manager, "배송담당자는 필수입니다.");
 
         validateCompanyManagerAssignmentStatus();
         manager.validateCompanyDeliveryAssignable(destinationHubId);
@@ -185,10 +198,21 @@ public class Delivery extends DeletableEntity {
         this.status = DeliveryStatus.DELIVERED;
     }
 
+    // 배송 취소
+    public void cancel() {
+        if (status != DeliveryStatus.WAITING_AT_DEPARTURE_HUB) {
+            throw new DeliveryServiceException(
+                    ErrorCode.DELIVERY_CANNOT_BE_CANCELLED
+            );
+        }
+
+        this.status = DeliveryStatus.CANCELLED;
+    }
+
 
     // 조회성 도메인 메서드
     private DeliveryRoute findRoute(UUID routeId) {
-        Objects.requireNonNull(routeId, "배송 경로 ID는 필수입니다.");
+        requireNonNull(routeId, "배송 경로 ID는 필수입니다.");
 
         return deliveryRoutes.stream()
                 .filter(route -> route.hasId(routeId))
@@ -245,14 +269,6 @@ public class Delivery extends DeletableEntity {
         if (duplicated) {
             throw new IllegalArgumentException("배송 경로 순번은 중복될 수 없습니다.");
         }
-    }
-
-    // 공통 값 검증
-    private static String requireText(String value, String message) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(message); // TODO: 예외처리는 정리하여 추후 맞는 예외로 모두 수정
-        }
-        return value;
     }
 
 }

@@ -14,10 +14,48 @@ spring:
       server:
         webflux:
           routes:
+          #User Service
             - id: user-service
               uri: lb://user-service
               predicates:
-                - Path=/api/v1/users/** # /users/** 경로로 들어오는 요청을 이 라우트로 처리
+                - Path=/api/v1/users/**
+          # Hub Service
+            - id: hub-service
+              uri: lb://hub-service
+              predicates:
+                - Path=/api/v1/hubs/**, /api/v1/hub-routes/**
+
+          # Company Service
+            - id: company-service
+              uri: lb://company-service
+              predicates:
+                - Path=/api/v1/companies/**
+
+          # Product Service
+            - id: product-service
+              uri: lb://product-service
+              predicates:
+                - Path=/api/v1/products/**
+
+
+          # Order Service
+            - id: order-service
+              uri: lb://order-service
+              predicates:
+                - Path=/api/v1/orders/**
+
+          # Notification Service
+            - id: notification-service
+              uri: lb://notification-service
+              predicates:
+                - Path=/api/v1/ai-alerts/**
+                - Path=/api/v1/slack-messages/**
+
+            # Delivery Service
+            - id: delivery-service
+              uri: lb://delivery-service
+              predicates:
+                - Path=/api/v1/deliveries/**, /api/v1/delivery-managers/**
 
         discovery:
           locator:

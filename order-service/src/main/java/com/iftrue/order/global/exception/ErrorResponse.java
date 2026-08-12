@@ -3,7 +3,7 @@ package com.iftrue.order.global.exception;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 
@@ -11,7 +11,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class ErrorResponse {
 
-    private LocalDateTime timestamp;
+    private Instant timestamp;
     private int status;
     private String code;
     private String message;
@@ -26,7 +26,7 @@ public class ErrorResponse {
             Map<String, Object> errors
     ) {
         return new ErrorResponse(
-                LocalDateTime.now(),
+                Instant.now(),
                 errorCode.getStatus().value(),
                 errorCode.getCode(),
                 errorCode.getMessage(),

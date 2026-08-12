@@ -8,4 +8,8 @@ public interface DeliveryRepository {
     Delivery save(Delivery delivery);
 
     Optional<Delivery> findById(UUID deliveryId);
+
+    boolean existsByOrderId(UUID orderId);
+
+    Optional<Delivery> findByOrderId(UUID orderId);
 }

@@ -5,6 +5,7 @@ CREATE TABLE delivery_schema.p_delivery_manager
     hub_id     UUID,
     type       VARCHAR(50)  NOT NULL,
     sequence   INTEGER      NOT NULL,
+    last_assigned_at TIMESTAMPTZ,
 
     created_at TIMESTAMPTZ  NOT NULL,
     created_by VARCHAR(100) NOT NULL,
@@ -64,7 +65,8 @@ CREATE TABLE delivery_schema.p_delivery
                           'MOVING_BETWEEN_HUBS',
                           'ARRIVED_AT_DESTINATION_HUB',
                           'MOVING_TO_COMPANY',
-                          'DELIVERED'
+                          'DELIVERED',
+                          'CANCELLED'
             )),
 
     CONSTRAINT fk_delivery_company_manager

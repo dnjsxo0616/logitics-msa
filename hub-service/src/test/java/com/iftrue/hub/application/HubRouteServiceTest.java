@@ -55,7 +55,6 @@ class HubRouteServiceTest {
     void createRouteFailsWhenDepartureAndArrivalAreSame() {
         UUID hubId = UUID.randomUUID();
         HubRouteCreateRequestDto request = createRequest(hubId, hubId, 120, "325.50");
-        given(currentUserProvider.getCurrentUserRole()).willReturn("MASTER");
 
         assertThatThrownBy(() -> hubRouteService.createHubRoute(request))
                 .isInstanceOf(BusinessException.class)
@@ -70,7 +69,6 @@ class HubRouteServiceTest {
         UUID departureHubId = UUID.randomUUID();
         UUID arrivalHubId = UUID.randomUUID();
         HubRouteCreateRequestDto request = createRequest(departureHubId, arrivalHubId, 120, "325.50");
-        given(currentUserProvider.getCurrentUserRole()).willReturn("MASTER");
         given(hubRepository.existsByIdAndDeletedAtIsNull(departureHubId)).willReturn(true);
         given(hubRepository.existsByIdAndDeletedAtIsNull(arrivalHubId)).willReturn(true);
         given(hubRouteRepository.existsByDepartureHubIdAndArrivalHubIdAndDeletedAtIsNull(
@@ -120,7 +118,6 @@ class HubRouteServiceTest {
     void updateRouteKeepsUntouchedFields() {
         UUID routeId = UUID.randomUUID();
         HubRoute route = routeWithId(routeId, 300, "325.50");
-        given(currentUserProvider.getCurrentUserRole()).willReturn("MASTER");
         given(hubRouteRepository.findByIdAndDeletedAtIsNull(routeId)).willReturn(Optional.of(route));
 
         HubRouteUpdateRequestDto request = updateRequest(null, "201.10");

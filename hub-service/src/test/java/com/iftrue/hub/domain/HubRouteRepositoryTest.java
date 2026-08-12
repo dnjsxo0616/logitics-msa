@@ -2,8 +2,11 @@ package com.iftrue.hub.domain;
 
 import com.iftrue.hub.global.config.AuditorAwareImpl;
 import com.iftrue.hub.global.config.JpaAuditingConfig;
+import com.iftrue.hub.global.security.AuthenticatedUser;
 import com.iftrue.hub.global.security.CurrentUserProvider;
 import org.hibernate.exception.ConstraintViolationException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +17,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -38,6 +43,19 @@ class HubRouteRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;
+
+    @BeforeEach
+    void setUpSecurityContext() {
+        AuthenticatedUser principal = new AuthenticatedUser(UUID.randomUUID(), "MASTER");
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                principal, null, List.of(new SimpleGrantedAuthority("ROLE_MASTER")));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     @DisplayName("경로 저장 후 재조회하면 출발-도착 방향과 값이 그대로 보존된다")

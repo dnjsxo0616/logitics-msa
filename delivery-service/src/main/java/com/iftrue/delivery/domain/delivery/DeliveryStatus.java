@@ -6,4 +6,5 @@ public enum DeliveryStatus {
     ARRIVED_AT_DESTINATION_HUB,
     MOVING_TO_COMPANY,
     DELIVERED,
+    CANCELLED,
 }

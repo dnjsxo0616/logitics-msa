@@ -54,7 +54,6 @@ public class HubServiceTest {
         UUID hubId = UUID.randomUUID();
         HubCreateRequestDto request = hubCreateRequest("서울특별시 센터");
 
-        given(currentUserProvider.getCurrentUserRole()).willReturn("MASTER");
         given(hubRepository.existsByNameAndDeletedAtIsNull("서울특별시 센터")).willReturn(false);
         given(hubRepository.save(any(Hub.class)))
                 .willAnswer(invocation -> {
@@ -77,7 +76,6 @@ public class HubServiceTest {
     @DisplayName("허브가 이미 존재하면 허브 생성에 실패한다")
     void createHubDuplicate() {
         HubCreateRequestDto request = hubCreateRequest("서울특별시 센터");
-        given(currentUserProvider.getCurrentUserRole()).willReturn("MASTER");
         given(hubRepository.existsByNameAndDeletedAtIsNull("서울특별시 센터")).willReturn(true);
 
         assertThatThrownBy(() -> hubService.createHub(request))
@@ -92,7 +90,6 @@ public class HubServiceTest {
     void updateHubPartial() {
         UUID hubId = UUID.randomUUID();
         Hub hub = hubWithId("서울특별시 센터", hubId);
-        given(currentUserProvider.getCurrentUserRole()).willReturn("MASTER");
         given(hubRepository.findByIdAndDeletedAtIsNull(hubId)).willReturn(Optional.of(hub));
 
         HubUpdateRequestDto request = hubUpdateRequest(null, "서울특별시 강남구 테헤란로 100", null, null);
@@ -109,7 +106,6 @@ public class HubServiceTest {
     void updateHubSameNameSkipsDuplicateCheck() {
         UUID hubId = UUID.randomUUID();
         Hub hub = hubWithId("서울특별시 센터", hubId);
-        given(currentUserProvider.getCurrentUserRole()).willReturn("MASTER");
         given(hubRepository.findByIdAndDeletedAtIsNull(hubId)).willReturn(Optional.of(hub));
 
         HubUpdateRequestDto request = hubUpdateRequest("서울특별시 센터", null, null, null);
@@ -124,7 +120,6 @@ public class HubServiceTest {
     void updateHubDuplicateName() {
         UUID hubId = UUID.randomUUID();
         Hub hub = hubWithId("서울특별시 센터", hubId);
-        given(currentUserProvider.getCurrentUserRole()).willReturn("MASTER");
         given(hubRepository.findByIdAndDeletedAtIsNull(hubId)).willReturn(Optional.of(hub));
         given(hubRepository.existsByNameAndDeletedAtIsNull("부산광역시 센터")).willReturn(true);
 

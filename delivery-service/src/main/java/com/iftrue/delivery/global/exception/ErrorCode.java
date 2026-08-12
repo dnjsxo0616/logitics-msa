@@ -20,7 +20,17 @@ public enum ErrorCode {
     AUTH_FORBIDDEN(HttpStatus.FORBIDDEN, "접근 권한이 없습니다.", "U-002"),
 
     // Delivery
-    DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 배송입니다.", "D-001");
+    DELIVERY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 배송입니다.", "D-001"),
+    DELIVERY_DUPLICATE(HttpStatus.CONFLICT, "해당 주문의 배송은 이미 존재합니다.", "D-002"),
+    DELIVERY_CANNOT_BE_CANCELLED(HttpStatus.CONFLICT, "해당 배송 상태에서는 취소 할 수 없습니다,", "D-003"),
+
+    // DeliveryManager
+    DELIVERY_MANAGER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 배송담당자입니다.", "DM-001"),
+    DELIVERY_MANAGER_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "배정 최대 인원을 초과하였습니다.", "DM-002"),
+    DELIVERY_MANAGER_INVALID_HUB(HttpStatus.BAD_REQUEST, "배송담당자 유형과 소속 허브 정보가 올바르지 않습니다.", "DM-003"),
+    DELIVERY_MANAGER_DUPLICATE(HttpStatus.CONFLICT, "해당 배송 담당자는 이미 존재합니다.", "DM-004")
+    ;
+
 
     private final String message;
     private final HttpStatus status;

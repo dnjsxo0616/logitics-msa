@@ -12,12 +12,15 @@ import com.iftrue.hub.domain.Hub;
 import com.iftrue.hub.domain.HubRepository;
 import com.iftrue.hub.domain.HubRoute;
 import com.iftrue.hub.domain.HubRouteRepository;
+import com.iftrue.hub.global.config.CacheConfig;
 import com.iftrue.hub.global.exception.BusinessException;
 import com.iftrue.hub.global.exception.ErrorCode;
 import com.iftrue.hub.global.response.PageResponse;
 import com.iftrue.hub.global.security.CurrentUserProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +39,6 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class HubRouteService {
 
-    private static final String ROLE_MASTER = "MASTER";
     private static final Set<Integer> ALLOWED_SIZES = Set.of(10, 30, 50);
     private static final int DEFAULT_PAGE_SIZE = 10;
     private static final Set<String> ALLOWED_SORT = Set.of("createdAt", "updatedAt");
@@ -47,9 +49,9 @@ public class HubRouteService {
     private final CurrentUserProvider currentUserProvider;
     private final HubRouteMetricsProvider hubRouteMetricsProvider;
 
+    @CacheEvict(cacheNames = CacheConfig.HUB_ROUTE_PATH, allEntries = true)
     @Transactional
     public HubRouteResponseDto createHubRoute(HubRouteCreateRequestDto request) {
-        checkMasterRole();
 
         UUID departureHubId = request.getDepartureHubId();
         UUID arrivalHubId = request.getArrivalHubId();
@@ -70,9 +72,9 @@ public class HubRouteService {
         return response;
     }
 
+    @CacheEvict(cacheNames = CacheConfig.HUB_ROUTE_PATH, allEntries = true)
     @Transactional
     public HubRouteResponseDto createHubRouteAuto(HubRouteAutoCreateRequestDto request) {
-        checkMasterRole();
 
         UUID departureHubId = request.getDepartureHubId();
         UUID arrivalHubId = request.getArrivalHubId();
@@ -129,9 +131,9 @@ public class HubRouteService {
         return PageResponse.from(hubRoutePage);
     }
 
+    @CacheEvict(cacheNames = CacheConfig.HUB_ROUTE_PATH, allEntries = true)
     @Transactional
     public HubRouteResponseDto updateHubRoute(UUID routeId, HubRouteUpdateRequestDto request) {
-        checkMasterRole();
 
         HubRoute hubRoute = getHubRouteOrThrow(routeId);
         hubRoute.update(request.getDurationMinutes(), request.getDistanceKm());
@@ -141,9 +143,9 @@ public class HubRouteService {
         return HubRouteResponseDto.from(hubRoute);
     }
 
+    @CacheEvict(cacheNames = CacheConfig.HUB_ROUTE_PATH, allEntries = true)
     @Transactional
     public void deleteHubRoute(UUID routeId) {
-        checkMasterRole();
         HubRoute hubRoute = getHubRouteOrThrow(routeId);
         hubRoute.softDelete(currentUserProvider.getCurrentUserId());
 
@@ -158,6 +160,7 @@ public class HubRouteService {
         log.info("[HubRoute] 허브 삭제 시 연관 경로 soft delete 완료 hubId={}, count={}", hubId, routes.size());
     }
 
+    @Cacheable(cacheNames = CacheConfig.HUB_ROUTE_PATH, key = "#departureHubId + ':' + #arrivalHubId")
     public HubRoutePathResponseDto findPath(UUID departureHubId, UUID arrivalHubId) {
         validateHubExists(departureHubId);
         validateHubExists(arrivalHubId);
@@ -229,12 +232,6 @@ public class HubRouteService {
     private void validateHubExists(UUID hubId) {
         if (!hubRepository.existsByIdAndDeletedAtIsNull(hubId)) {
             throw new BusinessException(ErrorCode.HUB_NOT_FOUND);
-        }
-    }
-
-    private void checkMasterRole() {
-        if (!ROLE_MASTER.equals(currentUserProvider.getCurrentUserRole())) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
         }
     }
 }

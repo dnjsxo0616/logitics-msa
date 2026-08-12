@@ -21,3 +21,6 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_URI}
+
+server:
+  port: ${DELIVERY_SERVICE_PORT}
