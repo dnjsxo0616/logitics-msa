@@ -28,4 +28,9 @@ public class DeliveryRepositoryAdapter implements DeliveryRepository {
     public boolean existsByOrderId(UUID orderId) {
         return jpaDeliveryRepository.existsByOrderId(orderId);
     }
+
+    @Override
+    public Optional<Delivery> findByOrderId(UUID orderId) {
+        return jpaDeliveryRepository.findByOrderId(orderId);
+    }
 }
