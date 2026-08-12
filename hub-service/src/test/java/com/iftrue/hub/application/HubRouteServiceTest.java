@@ -3,6 +3,7 @@ package com.iftrue.hub.application;
 import com.iftrue.hub.application.dto.HubRouteCreateRequestDto;
 import com.iftrue.hub.application.dto.HubRouteResponseDto;
 import com.iftrue.hub.application.dto.HubRouteUpdateRequestDto;
+import com.iftrue.hub.application.metrics.HubRouteMetricsProvider;
 import com.iftrue.hub.domain.HubRepository;
 import com.iftrue.hub.domain.HubRoute;
 import com.iftrue.hub.domain.HubRouteRepository;
@@ -46,6 +47,9 @@ class HubRouteServiceTest {
 
     @Mock
     private CurrentUserProvider currentUserProvider;
+
+    @Mock
+    private HubRouteMetricsProvider hubRouteMetricsProvider;
 
     @InjectMocks
     private HubRouteService hubRouteService;
