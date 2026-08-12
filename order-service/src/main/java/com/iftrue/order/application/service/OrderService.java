@@ -109,7 +109,7 @@ public class OrderService {
 
     private void validateProductSupplier(OrderCreateRequest request, ProductResponse product
     ) {
-        if (!request.supplierCompanyId().equals(product.companyId())) {
+        if (!request.supplierCompanyId().equals(product.supplierCompanyId())) {
             throw new BusinessException(OrderErrorCode.PRODUCT_SUPPLIER_MISMATCH);
         }
     }
