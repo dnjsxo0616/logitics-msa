@@ -10,6 +10,9 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.iftrue.delivery.domain.common.DomainValidator.requireNonNull;
+import static com.iftrue.delivery.domain.common.DomainValidator.requireText;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -42,9 +45,9 @@ public class DeliveryManager extends DeletableEntity {
             DeliveryManagerType type,
             int sequence
     ) {
-        this.id = Objects.requireNonNull(id, "사용자 ID는 필수입니다.");
+        this.id = requireNonNull(id, "사용자 ID는 필수입니다.");
         this.slackId = requireText(slackId, "Slack ID는 필수입니다.");
-        this.type = Objects.requireNonNull(type, "배송담당자 유형은 필수입니다.");
+        this.type = requireNonNull(type, "배송담당자 유형은 필수입니다.");
 
         validateHubId(type, hubId);
         validateSequence(sequence);
@@ -74,7 +77,7 @@ public class DeliveryManager extends DeletableEntity {
             UUID hubId,
             int sequence
     ) {
-        Objects.requireNonNull(hubId, "업체 배송담당자는 소속 허브가 필수 입니다.");
+        requireNonNull(hubId, "업체 배송담당자는 소속 허브가 필수 입니다.");
 
         return new DeliveryManager(
                 userId,
@@ -91,7 +94,7 @@ public class DeliveryManager extends DeletableEntity {
 
     // 업체 배송 담당자 검증
     public void validateCompanyDeliveryAssignable(UUID destinationHubId) {
-        Objects.requireNonNull(destinationHubId, "목적지 허브 ID는 필수입니다.");
+        requireNonNull(destinationHubId, "목적지 허브 ID는 필수입니다.");
 
         if (type != DeliveryManagerType.COMPANY) {
             throw new IllegalStateException("업체 배송담당자만 업체 배송을 담당할 수 있습니다.");
@@ -135,18 +138,5 @@ public class DeliveryManager extends DeletableEntity {
             throw new IllegalArgumentException("배송담당자 순번은 1 이상이어야 합니다.");
         }
     }
-
-    // 공통 값 검증
-    private static String requireText(
-            String value,
-            String message
-    ) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(message);
-        }
-
-        return value;
-    }
-
 
 }
