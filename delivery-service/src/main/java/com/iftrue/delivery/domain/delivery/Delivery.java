@@ -3,6 +3,8 @@ package com.iftrue.delivery.domain.delivery;
 import com.iftrue.delivery.domain.common.DeletableEntity;
 import com.iftrue.delivery.domain.deliverymanager.DeliveryManager;
 import com.iftrue.delivery.domain.deliveryroute.DeliveryRoute;
+import com.iftrue.delivery.global.exception.DeliveryServiceException;
+import com.iftrue.delivery.global.exception.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -196,6 +198,17 @@ public class Delivery extends DeletableEntity {
         }
 
         this.status = DeliveryStatus.DELIVERED;
+    }
+
+    // 배송 취소
+    public void cancel() {
+        if (status != DeliveryStatus.WAITING_AT_DEPARTURE_HUB) {
+            throw new DeliveryServiceException(
+                    ErrorCode.DELIVERY_CANNOT_BE_CANCELLED
+            );
+        }
+
+        this.status = DeliveryStatus.CANCELLED;
     }
 
 
