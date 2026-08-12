@@ -53,18 +53,34 @@ public class DeliveryManager extends DeletableEntity {
         this.sequence = sequence;
     }
 
-    public static DeliveryManager create(
-            UUID id,
+    public static DeliveryManager createHubManager(
+            UUID userId,
             String slackId,
-            UUID hubId,
-            DeliveryManagerType type,
             int sequence
     ) {
+
         return new DeliveryManager(
-                id,
+                userId,
+                slackId,
+                null,
+                DeliveryManagerType.HUB,
+                sequence
+        );
+    }
+
+    public static DeliveryManager createCompanyManager(
+            UUID userId,
+            String slackId,
+            UUID hubId,
+            int sequence
+    ) {
+        Objects.requireNonNull(hubId, "업체 배송담당자는 소속 허브가 필수 입니다.");
+
+        return new DeliveryManager(
+                userId,
                 slackId,
                 hubId,
-                type,
+                DeliveryManagerType.COMPANY,
                 sequence
         );
     }
