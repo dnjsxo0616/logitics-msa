@@ -38,7 +38,6 @@ public class HubService {
     private static final int DEFAULT_PAGE_SIZE = 10;
     private static final Set<String> ALLOWED_SORT = Set.of("createdAt", "updatedAt", "name");
     private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "createdAt");
-    private static final String ROLE_MASTER = "MASTER";
 
     private final HubRepository hubRepository;
     private final CurrentUserProvider currentUserProvider;
@@ -46,7 +45,6 @@ public class HubService {
 
     @Transactional
     public HubResponseDto createHub(HubCreateRequestDto request) {
-        checkMasterRole();
 
         String name = resolveName(request.getName(), null);
 
@@ -97,7 +95,6 @@ public class HubService {
     @CachePut(cacheNames = CacheConfig.HUB, key = "#hubId")
     @Transactional
     public HubResponseDto updateHub(UUID hubId, HubUpdateRequestDto request) {
-        checkMasterRole();
 
         Hub hub = getHubOrThrow(hubId);
         String newName = resolveName(request.getName(), hub.getName());
@@ -115,7 +112,6 @@ public class HubService {
     })
     @Transactional
     public void deleteHub(UUID hubId) {
-        checkMasterRole();
 
         Hub hub = getHubOrThrow(hubId);
 
@@ -130,12 +126,6 @@ public class HubService {
         boolean exists = hubRepository.existsByIdAndDeletedAtIsNull(hubId);
         log.info("[Hub-internal] 허브 존재 확인 hubId={}, exists={}", hubId, exists);
         return HubExistsResponseDto.of(hubId, exists);
-    }
-
-    private void checkMasterRole() {
-        if (!ROLE_MASTER.equals(currentUserProvider.getCurrentUserRole())) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
-        }
     }
 
     private Hub getHubOrThrow(UUID hubId) {

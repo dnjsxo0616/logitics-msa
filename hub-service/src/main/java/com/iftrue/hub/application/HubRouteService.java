@@ -33,7 +33,6 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class HubRouteService {
 
-    private static final String ROLE_MASTER = "MASTER";
     private static final Set<Integer> ALLOWED_SIZES = Set.of(10, 30, 50);
     private static final int DEFAULT_PAGE_SIZE = 10;
     private static final Set<String> ALLOWED_SORT = Set.of("createdAt", "updatedAt");
@@ -46,7 +45,6 @@ public class HubRouteService {
     @CacheEvict(cacheNames = CacheConfig.HUB_ROUTE_PATH, allEntries = true)
     @Transactional
     public HubRouteResponseDto createHubRoute(HubRouteCreateRequestDto request) {
-        checkMasterRole();
 
         UUID departureHubId = request.getDepartureHubId();
         UUID arrivalHubId = request.getArrivalHubId();
@@ -110,7 +108,6 @@ public class HubRouteService {
     @CacheEvict(cacheNames = CacheConfig.HUB_ROUTE_PATH, allEntries = true)
     @Transactional
     public HubRouteResponseDto updateHubRoute(UUID routeId, HubRouteUpdateRequestDto request) {
-        checkMasterRole();
 
         HubRoute hubRoute = getHubRouteOrThrow(routeId);
         hubRoute.update(request.getDurationMinutes(), request.getDistanceKm());
@@ -123,7 +120,6 @@ public class HubRouteService {
     @CacheEvict(cacheNames = CacheConfig.HUB_ROUTE_PATH, allEntries = true)
     @Transactional
     public void deleteHubRoute(UUID routeId) {
-        checkMasterRole();
         HubRoute hubRoute = getHubRouteOrThrow(routeId);
         hubRoute.softDelete(currentUserProvider.getCurrentUserId());
 
@@ -188,12 +184,6 @@ public class HubRouteService {
     private void validateHubExists(UUID hubId) {
         if (!hubRepository.existsByIdAndDeletedAtIsNull(hubId)) {
             throw new BusinessException(ErrorCode.HUB_NOT_FOUND);
-        }
-    }
-
-    private void checkMasterRole() {
-        if (!ROLE_MASTER.equals(currentUserProvider.getCurrentUserRole())) {
-            throw new BusinessException(ErrorCode.FORBIDDEN);
         }
     }
 }

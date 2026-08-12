@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -25,6 +26,7 @@ public class HubRouteController {
 
     private final HubRouteService hubRouteService;
 
+    @PreAuthorize("hasRole('MASTER')")
     @PostMapping
     public ResponseEntity<ApiResponse<HubRouteResponseDto>> createHubRoute(
             @Valid @RequestBody HubRouteCreateRequestDto request
@@ -61,6 +63,7 @@ public class HubRouteController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @PreAuthorize("hasRole('MASTER')")
     @PatchMapping("/{routeId}")
     public ResponseEntity<ApiResponse<HubRouteResponseDto>> updateHubRoute(
             @PathVariable UUID routeId,
@@ -70,6 +73,7 @@ public class HubRouteController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @PreAuthorize("hasRole('MASTER')")
     @DeleteMapping("/{routeId}")
     public ResponseEntity<ApiResponse<Void>> deleteHubRoute(@PathVariable UUID routeId) {
         hubRouteService.deleteHubRoute(routeId);

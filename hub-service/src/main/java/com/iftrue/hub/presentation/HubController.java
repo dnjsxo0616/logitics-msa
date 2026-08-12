@@ -4,7 +4,6 @@ import com.iftrue.hub.application.HubService;
 import com.iftrue.hub.application.dto.HubCreateRequestDto;
 import com.iftrue.hub.application.dto.HubResponseDto;
 import com.iftrue.hub.application.dto.HubUpdateRequestDto;
-import com.iftrue.hub.domain.Hub;
 import com.iftrue.hub.global.response.ApiResponse;
 import com.iftrue.hub.global.response.PageResponse;
 import jakarta.validation.Valid;
@@ -14,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -26,6 +26,7 @@ public class HubController {
 
     private final HubService hubService;
 
+    @PreAuthorize("hasRole('MASTER')")
     @PostMapping
     public ResponseEntity<ApiResponse<HubResponseDto>> createHub(
             @Valid @RequestBody HubCreateRequestDto request
@@ -60,6 +61,7 @@ public class HubController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @PreAuthorize("hasRole('MASTER')")
     @PatchMapping("/{hubId}")
     public ResponseEntity<ApiResponse<HubResponseDto>> updateHub(
             @PathVariable UUID hubId,
@@ -69,6 +71,7 @@ public class HubController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @PreAuthorize("hasRole('MASTER')")
     @DeleteMapping("/{hubId}")
     public ResponseEntity<ApiResponse<Void>> deleteHub(@PathVariable UUID hubId) {
         hubService.deleteHub(hubId);
