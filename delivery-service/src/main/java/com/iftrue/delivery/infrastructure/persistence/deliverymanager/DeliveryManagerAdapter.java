@@ -31,4 +31,9 @@ public class DeliveryManagerAdapter implements DeliveryManagerRepository {
     public List<DeliveryManager> findAllByTypeAndDeletedAtIsNullOrderBySequenceAsc(DeliveryManagerType deliveryManagerType) {
         return jpaDeliveryManagerRepository.findAllByTypeAndDeletedAtIsNullOrderBySequenceAsc(deliveryManagerType);
     }
+
+    @Override
+    public List<DeliveryManager> findAllByTypeAndHubIdAndDeletedAtIsNullOrderBySequenceAsc(DeliveryManagerType deliveryManagerType, UUID destinationHubId) {
+        return jpaDeliveryManagerRepository.findAllByTypeAndHubIdAndDeletedAtIsNullOrderBySequenceAsc(deliveryManagerType, destinationHubId);
+    }
 }

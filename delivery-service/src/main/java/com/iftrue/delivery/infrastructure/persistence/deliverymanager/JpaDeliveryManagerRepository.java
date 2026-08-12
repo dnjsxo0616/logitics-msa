@@ -10,4 +10,6 @@ import java.util.UUID;
 public interface JpaDeliveryManagerRepository extends JpaRepository<DeliveryManager, UUID> {
 
     List<DeliveryManager> findAllByTypeAndDeletedAtIsNullOrderBySequenceAsc(DeliveryManagerType deliveryManagerType);
+
+    List<DeliveryManager> findAllByTypeAndHubIdAndDeletedAtIsNullOrderBySequenceAsc(DeliveryManagerType deliveryManagerType, UUID destinationHubId);
 }

@@ -11,4 +11,6 @@ public interface DeliveryManagerRepository {
     Optional<DeliveryManager> findById(UUID deliveryManagerId);
 
     List<DeliveryManager> findAllByTypeAndDeletedAtIsNullOrderBySequenceAsc(DeliveryManagerType deliveryManagerType);
+
+    List<DeliveryManager> findAllByTypeAndHubIdAndDeletedAtIsNullOrderBySequenceAsc(DeliveryManagerType deliveryManagerType, UUID destinationHubId);
 }

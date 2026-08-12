@@ -149,20 +149,14 @@ public class Delivery extends DeletableEntity {
 
     public void arriveRoute(
             UUID routeId,
-            Instant arrivedAt,
-            BigDecimal actualDistance,
-            Integer actualDuration
+            Instant arrivedAt
     ) {
         if (status != DeliveryStatus.MOVING_BETWEEN_HUBS) {
             throw new IllegalStateException("허브 간 이동 중인 배송의 경로만 도착 처리할 수 있습니다.");
         }
         DeliveryRoute route = findRoute(routeId);
 
-        route.arrive(
-                arrivedAt,
-                actualDistance,
-                actualDuration
-        );
+        route.arrive(arrivedAt);
 
 
         if (allRoutesArrived()) {

@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -132,9 +133,7 @@ public class DeliveryRoute extends DeletableEntity {
     }
 
     public void arrive(
-            Instant arrivedAt,
-            BigDecimal actualDistance,
-            Integer actualDuration
+            Instant arrivedAt
     ) {
         if (status != HubDeliveryStatus.IN_TRANSIT) {
             throw new IllegalStateException("이동 중인 배송 경로만 도착 처리할 수 있습니다.");
@@ -150,12 +149,23 @@ public class DeliveryRoute extends DeletableEntity {
             throw new IllegalArgumentException("도착 시각은 출발 시각보다 빠를 수 없습니다.");
         }
 
-        validateActualDistance(actualDistance);
-        validateActualDuration(actualDuration);
+        long durationMinutes =
+                Duration.between(
+                        departedAt,
+                        validatedArrivedAt
+                ).toMinutes();
+
+        BigDecimal calculatedActualDistance = this.expectedDistance;
+
+        int calculatedActualDuration =
+                Math.toIntExact(durationMinutes);
+
+        validateActualDistance(calculatedActualDistance);
+        validateActualDuration(calculatedActualDuration);
 
         this.arrivedAt = validatedArrivedAt;
-        this.actualDistance = actualDistance;
-        this.actualDuration = actualDuration;
+        this.actualDistance = calculatedActualDistance;
+        this.actualDuration = calculatedActualDuration;
         this.status = HubDeliveryStatus.ARRIVED;
     }
 
@@ -208,8 +218,8 @@ public class DeliveryRoute extends DeletableEntity {
         }
     }
 
-    private static void validateActualDuration(Integer actualDuration) {
-        if (actualDuration == null || actualDuration < 0) {
+    private static void validateActualDuration(int actualDuration) {
+        if (actualDuration < 0) {
             throw new IllegalArgumentException("실제 소요 시간은 0 이상이어야 합니다.");
         }
     }
