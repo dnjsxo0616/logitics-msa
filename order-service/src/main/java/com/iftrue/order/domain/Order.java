@@ -132,6 +132,10 @@ public class Order {
     }
 
     public void complete() {
+        if (this.status == OrderStatus.COMPLETED) {
+            return;
+        }
+
         changeStatus(OrderStatus.COMPLETED);
     }
 

@@ -46,6 +46,12 @@ public class OrderTransactionService {
         order.fail();
     }
 
+    @Transactional
+    public void completeOrder(UUID orderId) {
+        Order order = getOrder(orderId);
+        order.complete();
+    }
+
     private Order getOrder(UUID orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
