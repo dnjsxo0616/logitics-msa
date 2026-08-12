@@ -32,6 +32,9 @@ eureka:
   instance:
     prefer-ip-address: true
 
+internal:
+  service-key: ${INTERNAL_SERVICE_KEY:local-internal-service-key}
+
 management:
   zipkin:
     tracing:
