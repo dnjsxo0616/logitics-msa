@@ -36,13 +36,11 @@ spring:
         api-key: ${GEMINI_API_KEY}
         chat:
           options:
-            model: ${GEMINI_MODEL:gemini-2.5-flash}
+            model: ${GEMINI_MODEL:gemini-flash-lite-latest}
             temperature: 0
             candidate-count: 1
             max-output-tokens: 64
             response-mime-type: application/json
-            thinking-budget: 0
-            include-thoughts: false
 
 notification:
   ai:
