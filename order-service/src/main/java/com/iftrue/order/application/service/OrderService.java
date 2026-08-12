@@ -45,9 +45,6 @@ public class OrderService {
             ProductResponse product = orderExternalService.getProduct(request.productId());
 
             UserResponse recipient = orderExternalService.getRecipient(recipientUserId);
-            UserResponse requester = recipientUserId.equals(user.userId())
-                    ? recipient
-                    : orderExternalService.getRecipient(user.userId());
 
             validateProductSupplier(request, product);
             validateRecipientCompany(request, recipient);
@@ -60,7 +57,7 @@ public class OrderService {
                     orderId,
                     pendingOrder.orderedAt(),
                     request,
-                    requester,
+                    recipient,
                     product
             );
 
@@ -136,7 +133,7 @@ public class OrderService {
             UUID orderId,
             Instant orderedAt,
             OrderCreateRequest request,
-            UserResponse requester,
+            UserResponse recipient,
             ProductResponse product
     ) {
         return new DeliveryCreateRequest(
@@ -145,8 +142,9 @@ public class OrderService {
                 request.requestedArrivalAt(),
                 request.supplierCompanyId(),
                 request.receiverCompanyId(),
-                requester.name(),
-                requester.email(),
+                recipient.name(),
+                recipient.email(),
+                recipient.slackId(),
                 new DeliveryCreateRequest.ProductInfo(
                         request.productId(),
                         product.productName(),
