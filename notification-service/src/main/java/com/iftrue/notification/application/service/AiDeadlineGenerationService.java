@@ -51,7 +51,7 @@ public class AiDeadlineGenerationService {
     }
 
     private void validateDeadline(Instant finalDeadline, AiRequestPayload request) {
-        if (finalDeadline.isBefore(request.orderedAt())
+        if (finalDeadline.isBefore(request.deliveryCreatedAt())
                 || finalDeadline.isAfter(request.requestedArrivalAt())) {
             throw new BusinessException(NotificationErrorCode.AI_PROCESSING_FAILED);
         }

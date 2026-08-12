@@ -65,18 +65,10 @@ public class AiAlertProcessingTransactionService {
     }
 
     @Transactional
-    public void handleFailure(UUID aiAlertId, String errorMessage, boolean retryable) {
+    public void handleFailure(UUID aiAlertId, String errorMessage) {
         AiAlert aiAlert = findById(aiAlertId);
 
         if (aiAlert.getStatus() != AiAlertStatus.PROCESSING) {
-            return;
-        }
-
-        if (retryable && aiAlert.getRetryCount() == 0) {
-            aiAlert.scheduleRetry(
-                    errorMessage,
-                    Instant.now().plus(properties.retryDelay())
-            );
             return;
         }
 
@@ -91,14 +83,6 @@ public class AiAlertProcessingTransactionService {
     }
 
     private void recoverTimedOut(AiAlert aiAlert, Instant now) {
-        if (aiAlert.getRetryCount() == 0) {
-            aiAlert.scheduleRetry(
-                    TIMEOUT_ERROR_MESSAGE,
-                    now.plus(properties.retryDelay())
-            );
-            return;
-        }
-
         aiAlert.fail(TIMEOUT_ERROR_MESSAGE);
     }
 }

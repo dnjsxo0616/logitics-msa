@@ -31,8 +31,7 @@ public class AiAlertProcessor {
         } catch (RuntimeException exception) {
             transactionService.handleFailure(
                     target.aiAlertId(),
-                    getErrorMessage(exception),
-                    isRetryable(exception)
+                    getErrorMessage(exception)
             );
             return;
         }
@@ -50,10 +49,5 @@ public class AiAlertProcessor {
         return NotificationErrorCode.AI_PROCESSING_FAILED.getCode()
                 + ": "
                 + NotificationErrorCode.AI_PROCESSING_FAILED.getMessage();
-    }
-
-    private boolean isRetryable(RuntimeException exception) {
-        return exception instanceof BusinessException businessException
-                && businessException.getErrorCode() == NotificationErrorCode.AI_PROCESSING_FAILED;
     }
 }

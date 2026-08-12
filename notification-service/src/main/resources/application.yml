@@ -39,7 +39,6 @@ spring:
             model: ${GEMINI_MODEL:gemini-flash-lite-latest}
             temperature: 0
             candidate-count: 1
-            max-output-tokens: 64
             response-mime-type: application/json
 
 notification:
