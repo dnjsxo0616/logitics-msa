@@ -28,6 +28,34 @@ spring:
     default-schema: notification_schema
     locations: classpath:db/migration
 
+  ai:
+    model:
+      chat: google-genai
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY}
+        chat:
+          options:
+            model: ${GEMINI_MODEL:gemini-2.5-flash}
+            temperature: 0
+            candidate-count: 1
+            max-output-tokens: 64
+            response-mime-type: application/json
+
+notification:
+  ai:
+    timezone: Asia/Seoul
+    work-start: "09:00"
+    work-end: "18:00"
+    max-prompt-chars: 8000
+    max-retry-count: 3
+    retry-delays:
+      - 1m
+      - 5m
+      - 15m
+    processing-interval: 5s
+    processing-timeout: 2m
+
 internal:
   service-key: ${INTERNAL_SERVICE_KEY}
 
