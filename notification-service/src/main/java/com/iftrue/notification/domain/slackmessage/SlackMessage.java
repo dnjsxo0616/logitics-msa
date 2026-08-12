@@ -55,13 +55,6 @@ public class SlackMessage extends BaseEntity {
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    @Column(name = "retry_count", nullable = false)
-    @ColumnDefault("0")
-    private int retryCount;
-
-    @Column(name = "next_retry_at")
-    private Instant nextRetryAt;
-
     private SlackMessage(
             AiAlert aiAlert,
             String slackReceiverId,
@@ -71,7 +64,6 @@ public class SlackMessage extends BaseEntity {
         this.slackReceiverId = slackReceiverId;
         this.message = message;
         this.status = SlackMessageStatus.WAITING_CONFIRMATION;
-        this.retryCount = 0;
     }
 
     public static SlackMessage create(
@@ -87,14 +79,10 @@ public class SlackMessage extends BaseEntity {
     }
 
     public void startSending() {
-        validateStatus(
-                SlackMessageStatus.WAITING_CONFIRMATION,
-                SlackMessageStatus.RETRY_WAIT
-        );
+        validateStatus(SlackMessageStatus.WAITING_CONFIRMATION);
 
         this.status = SlackMessageStatus.SENDING;
         this.errorMessage = null;
-        this.nextRetryAt = null;
     }
 
     public void complete(Instant sentAt) {
@@ -104,21 +92,6 @@ public class SlackMessage extends BaseEntity {
         this.sentAt = sentAt;
         this.status = SlackMessageStatus.SENT;
         this.errorMessage = null;
-        this.nextRetryAt = null;
-    }
-
-    public void scheduleRetry(
-            String errorMessage,
-            Instant nextRetryAt
-    ) {
-        validateStatus(SlackMessageStatus.SENDING);
-        validateText(errorMessage);
-        validateRequired(nextRetryAt);
-
-        this.retryCount++;
-        this.errorMessage = errorMessage;
-        this.nextRetryAt = nextRetryAt;
-        this.status = SlackMessageStatus.RETRY_WAIT;
     }
 
     public void fail(String errorMessage) {
@@ -126,18 +99,15 @@ public class SlackMessage extends BaseEntity {
         validateText(errorMessage);
 
         this.errorMessage = errorMessage;
-        this.nextRetryAt = null;
         this.status = SlackMessageStatus.FAILED;
     }
 
     public void cancel() {
         validateStatus(
                 SlackMessageStatus.WAITING_CONFIRMATION,
-                SlackMessageStatus.SENDING,
-                SlackMessageStatus.RETRY_WAIT
+                SlackMessageStatus.SENDING
         );
 
-        this.nextRetryAt = null;
         this.status = SlackMessageStatus.CANCELED;
     }
 
