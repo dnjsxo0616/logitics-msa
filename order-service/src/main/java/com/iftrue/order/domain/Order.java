@@ -49,8 +49,11 @@ public class Order {
     @Column(nullable = false, length = 30)
     private OrderStatus status;
 
-    @Column(name = "request_message", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "request_message", columnDefinition = "TEXT")
     private String requestMessage;
+
+    @Column(name = "requested_arrival_at", nullable = false)
+    private Instant requestedArrivalAt;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -75,20 +78,31 @@ public class Order {
     private UUID deletedBy;
 
     private Order(UUID receiverCompanyId, UUID supplierCompanyId,
-                  UUID productId, int quantity, String requestMessage) {
+                  UUID productId, int quantity, String requestMessage,
+                  Instant requestedArrivalAt) {
         this.receiverCompanyId = receiverCompanyId;
         this.supplierCompanyId = supplierCompanyId;
         this.productId = productId;
         this.quantity = quantity;
         this.requestMessage = requestMessage;
+        this.requestedArrivalAt = requestedArrivalAt;
         this.status = OrderStatus.PENDING;
     }
 
     public static Order create(UUID receiverCompanyId, UUID supplierCompanyId,
-                               UUID productId, int quantity, String requestMessage) {
+                               UUID productId, int quantity, String requestMessage,
+                               Instant requestedArrivalAt) {
         validateQuantity(quantity);
         validateRequestMessage(requestMessage);
-        return new Order(receiverCompanyId, supplierCompanyId, productId, quantity, requestMessage);
+        validateRequestedArrivalAt(requestedArrivalAt);
+        return new Order(
+                receiverCompanyId,
+                supplierCompanyId,
+                productId,
+                quantity,
+                requestMessage,
+                requestedArrivalAt
+        );
     }
 
     public void updateRequestMessage(String requestMessage) {
@@ -118,6 +132,10 @@ public class Order {
     }
 
     public void complete() {
+        if (this.status == OrderStatus.COMPLETED) {
+            return;
+        }
+
         changeStatus(OrderStatus.COMPLETED);
     }
 
@@ -157,8 +175,14 @@ public class Order {
     }
 
     private static void validateRequestMessage(String requestMessage) {
-        if (requestMessage == null || requestMessage.isBlank()) {
+        if (requestMessage != null && requestMessage.isBlank()) {
             throw new BusinessException(OrderErrorCode.INVALID_INPUT);
+        }
+    }
+
+    private static void validateRequestedArrivalAt(Instant requestedArrivalAt) {
+        if (requestedArrivalAt == null) {
+            throw new BusinessException(OrderErrorCode.INVALID_REQUESTED_ARRIVAL_TIME);
         }
     }
 

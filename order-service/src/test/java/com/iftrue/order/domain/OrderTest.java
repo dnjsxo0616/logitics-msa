@@ -4,6 +4,7 @@ import com.iftrue.order.global.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -27,7 +28,8 @@ class OrderTest {
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 0,
-                "요청사항"
+                "요청사항",
+                futureArrivalAt()
         )).isInstanceOf(BusinessException.class);
     }
 
@@ -39,7 +41,8 @@ class OrderTest {
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 -1,
-                "요청사항"
+                "요청사항",
+                futureArrivalAt()
         )).isInstanceOf(BusinessException.class);
     }
 
@@ -129,7 +132,12 @@ class OrderTest {
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 10,
-                "요청사항"
+                "요청사항",
+                futureArrivalAt()
         );
+    }
+
+    private Instant futureArrivalAt() {
+        return Instant.now().plusSeconds(86_400);
     }
 }
