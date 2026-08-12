@@ -16,15 +16,19 @@ import java.util.UUID;
 public class OrderTransactionService {
 
     private final OrderRepository orderRepository;
+    private final RequestedArrivalTimeValidator requestedArrivalTimeValidator;
 
     @Transactional
     public UUID createPendingOrder(OrderCreateRequest request) {
+        requestedArrivalTimeValidator.validate(request.requestedArrivalAt());
+
         Order order = Order.create(
                 request.receiverCompanyId(),
                 request.supplierCompanyId(),
                 request.productId(),
                 request.quantity(),
-                request.requestMessage()
+                request.requestMessage(),
+                request.requestedArrivalAt()
         );
 
         return orderRepository.save(order).getId();

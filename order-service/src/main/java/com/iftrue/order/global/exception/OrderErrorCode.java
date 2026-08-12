@@ -30,7 +30,9 @@ public enum OrderErrorCode implements ErrorCode {
     RECIPIENT_REQUIRED(HttpStatus.BAD_REQUEST, "O-020", "MASTER 주문에는 수령 담당자가 필요합니다."),
     DELIVERY_CANCELLATION_FAILED(HttpStatus.BAD_GATEWAY, "O-021", "배송 취소에 실패했습니다."),
     INVALID_RECIPIENT_INFO(HttpStatus.BAD_GATEWAY, "O-022", "수령 담당자 정보가 올바르지 않습니다."),
-    INVALID_PRODUCT_INFO(HttpStatus.BAD_GATEWAY, "O-023", "상품 정보가 올바르지 않습니다.");
+    INVALID_PRODUCT_INFO(HttpStatus.BAD_GATEWAY, "O-023", "상품 정보가 올바르지 않습니다."),
+    INVALID_REQUESTED_ARRIVAL_TIME(HttpStatus.BAD_REQUEST, "O-024", "희망 도착 시각이 올바르지 않습니다."),
+    REQUESTED_ARRIVAL_OUTSIDE_WORKING_HOURS(HttpStatus.BAD_REQUEST, "O-025", "희망 도착 시각은 09:00부터 18:00 사이여야 합니다.");
 
     private final HttpStatus status;
     private final String code;

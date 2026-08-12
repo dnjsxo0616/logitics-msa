@@ -16,7 +16,7 @@ public record OrderNotificationContext(
         @NotBlank @Email String requesterEmail,
         @NotBlank String productName,
         @Positive int quantity,
-        @NotBlank String requestMessage,
+        String requestMessage,
         @NotNull OrderStatus status
 ) {
 
