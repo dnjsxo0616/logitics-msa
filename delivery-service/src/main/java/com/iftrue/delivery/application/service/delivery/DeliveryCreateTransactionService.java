@@ -1,7 +1,7 @@
 package com.iftrue.delivery.application.service.delivery;
 
+import com.iftrue.delivery.application.dto.delivery.CreatedDelivery;
 import com.iftrue.delivery.application.dto.delivery.DeliveryCreateCommand;
-import com.iftrue.delivery.application.dto.delivery.DeliveryCreateResult;
 import com.iftrue.delivery.application.service.deliverymanager.DeliveryManagerAssignmentService;
 import com.iftrue.delivery.domain.delivery.Delivery;
 import com.iftrue.delivery.domain.delivery.DeliveryRepository;
@@ -20,7 +20,7 @@ public class DeliveryCreateTransactionService {
     private final DeliveryManagerAssignmentService deliveryManagerAssignmentService;
     private final DeliveryRepository deliveryRepository;
 
-    public DeliveryCreateResult create(
+    public CreatedDelivery create(
             DeliveryCreateCommand command,
             CompanyResponse supplierCompany,
             CompanyResponse recipientCompany,
@@ -35,6 +35,8 @@ public class DeliveryCreateTransactionService {
                 command.requesterSlackId()
         );
 
+        DeliveryManager departureHubManager = null;
+
         if (shortestRoute.isSameHub()) {
             DeliveryRoute deliveryRoute = delivery.addSameHubRoute();
 
@@ -42,6 +44,7 @@ public class DeliveryCreateTransactionService {
                     deliveryManagerAssignmentService.nextHubManager();
 
             deliveryRoute.assignHubDeliveryManager(manager);
+            departureHubManager = manager;
 
         } else {
             for (HubRouteSegment segment : shortestRoute.segments()) {
@@ -57,11 +60,15 @@ public class DeliveryCreateTransactionService {
                         deliveryManagerAssignmentService.nextHubManager();
 
                 deliveryRoute.assignHubDeliveryManager(manager);
+
+                if (departureHubManager == null) {
+                    departureHubManager = manager;
+                }
             }
         }
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
-        return new DeliveryCreateResult(savedDelivery.getId());
+        return CreatedDelivery.from(savedDelivery, departureHubManager);
     }
 }
 
