@@ -18,11 +18,16 @@ server:
 
 
 
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: ${EUREKA_URI:http://localhost:19090/eureka}
+
 eureka:
   client:
-    serviceUrl:
-      defaultZone: ${EUREKA_URI:http://localhost:19090/eureka}
-
+    register-with-eureka: false
+    fetch-registry: false
+    enabled: false
 
 service:
   jwt:

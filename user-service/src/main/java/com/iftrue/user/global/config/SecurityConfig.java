@@ -2,6 +2,7 @@ package com.iftrue.user.global.config;
 
 
 import com.iftrue.user.global.security.InternalAuthenticationFilter;
+import com.iftrue.user.global.security.JwtAuthenticationFilter;
 import com.iftrue.user.global.security.SecurityAccessDeniedHandler;
 import com.iftrue.user.global.security.SecurityAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final InternalAuthenticationFilter internalAuthenticationFilter;
     private final SecurityAuthenticationEntryPoint securityAuthenticationEntryPoint;
     private final SecurityAccessDeniedHandler securityAccessDeniedHandler;
@@ -49,11 +51,16 @@ public class SecurityConfig {
                                 "/api/v1/users/signup",
                                 "/api/v1/users/refresh"
                         ).permitAll()
+                        // 내부 서비스 API
+                        .requestMatchers("/api/v1/internal/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(securityAuthenticationEntryPoint)
                         .accessDeniedHandler(securityAccessDeniedHandler)
+                ).addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
                 )
                 .addFilterBefore(
                         internalAuthenticationFilter,

@@ -91,15 +91,7 @@ public class UserService {
     public Page<UserResponse> getUsers(Pageable pageable) {
         Authentication currentAuthentication =
                 SecurityContextHolder.getContext().getAuthentication();
-//        Principal → JWT에서 추출한 userId
-//
-//        Authorities → JWT의 role을 Spring Security 권한으로 변환한 값
-//
-//       Authenticated = true → Spring Security가 인증된 사용자로 인식
-        System.out.println("=== SECURITY CONTEXT ===");
-        System.out.println("Principal = " + currentAuthentication.getPrincipal());
-        System.out.println("Authorities = " + currentAuthentication.getAuthorities());
-        System.out.println("Authenticated = " + currentAuthentication.isAuthenticated());
+
         return userRepository.findAll(pageable)
                 .map(UserResponse::from);
     }
@@ -114,8 +106,8 @@ public class UserService {
                 );
         return UserResponse.from(user);
     }
-//    사용자 정보 수정
 
+//    사용자 정보 수정
     @Transactional
     public UserResponse updateUser(
             UUID id,
