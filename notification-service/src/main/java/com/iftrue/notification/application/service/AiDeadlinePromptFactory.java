@@ -2,8 +2,7 @@ package com.iftrue.notification.application.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.iftrue.notification.domain.aialert.DeliveryPayload;
-import com.iftrue.notification.domain.aialert.OrderPayload;
+import com.iftrue.notification.domain.aialert.AiRequestPayload;
 import com.iftrue.notification.global.config.AiDeadlineProperties;
 import com.iftrue.notification.global.exception.BusinessException;
 import com.iftrue.notification.global.exception.NotificationErrorCode;
@@ -23,31 +22,31 @@ public class AiDeadlinePromptFactory {
     private final ObjectMapper objectMapper;
     private final AiDeadlineProperties properties;
 
-    public String create(OrderPayload order, DeliveryPayload delivery) {
-        if (order == null || delivery == null) {
+    public String create(AiRequestPayload request) {
+        if (request == null) {
             throw new BusinessException(NotificationErrorCode.INVALID_INPUT);
         }
 
         PromptData data = new PromptData(
-                order.orderedAt(),
-                order.requestedArrivalAt(),
-                order.requesterName(),
-                order.productName(),
-                order.quantity(),
-                truncate(order.requestMessage()),
+                request.orderedAt(),
+                request.requestedArrivalAt(),
+                request.requesterName(),
+                request.productName(),
+                request.quantity(),
+                truncate(request.requestMessage()),
                 new Location(
-                        delivery.departureHub().name(),
-                        delivery.departureHub().address()
+                        request.departureHub().name(),
+                        request.departureHub().address()
                 ),
-                delivery.transitHubs().stream()
-                        .sorted(Comparator.comparingInt(DeliveryPayload.TransitHub::sequence))
+                request.transitHubs().stream()
+                        .sorted(Comparator.comparingInt(AiRequestPayload.TransitHub::sequence))
                         .map(hub -> new Route(
                                 hub.name(),
                                 hub.address(),
                                 hub.expectedDurationMinutes()
                         ))
                         .toList(),
-                delivery.destinationAddress()
+                request.destinationAddress()
         );
 
         String prompt = "Calculate the latest shipment time. "

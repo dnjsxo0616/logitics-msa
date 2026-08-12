@@ -1,13 +1,11 @@
 package com.iftrue.notification.application.dto;
 
-import com.iftrue.notification.domain.aialert.DeliveryPayload;
-import com.iftrue.notification.domain.aialert.OrderPayload;
+import com.iftrue.notification.domain.aialert.AiRequestPayload;
 
 import java.util.UUID;
 
 public record AiAlertProcessingTarget(
         UUID aiAlertId,
-        OrderPayload orderPayload,
-        DeliveryPayload deliveryPayload
+        AiRequestPayload requestPayload
 ) {
 }

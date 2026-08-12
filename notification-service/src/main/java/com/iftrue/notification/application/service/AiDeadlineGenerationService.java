@@ -4,8 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iftrue.notification.application.dto.GeminiDeadlineResult;
-import com.iftrue.notification.domain.aialert.DeliveryPayload;
-import com.iftrue.notification.domain.aialert.OrderPayload;
+import com.iftrue.notification.domain.aialert.AiRequestPayload;
 import com.iftrue.notification.global.exception.BusinessException;
 import com.iftrue.notification.global.exception.NotificationErrorCode;
 import com.iftrue.notification.infrastructure.client.ai.GeminiClient;
@@ -25,12 +24,12 @@ public class AiDeadlineGenerationService {
     private final GeminiClient geminiClient;
     private final ObjectMapper objectMapper;
 
-    public GeminiDeadlineResult generate(OrderPayload order, DeliveryPayload delivery) {
-        String prompt = promptFactory.create(order, delivery);
+    public GeminiDeadlineResult generate(AiRequestPayload request) {
+        String prompt = promptFactory.create(request);
         String aiResponse = geminiClient.generate(prompt);
         Instant finalDeadline = parseFinalDeadline(aiResponse);
 
-        validateDeadline(finalDeadline, order);
+        validateDeadline(finalDeadline, request);
 
         return new GeminiDeadlineResult(prompt, aiResponse, finalDeadline);
     }
@@ -51,9 +50,9 @@ public class AiDeadlineGenerationService {
         }
     }
 
-    private void validateDeadline(Instant finalDeadline, OrderPayload order) {
-        if (finalDeadline.isBefore(order.orderedAt())
-                || finalDeadline.isAfter(order.requestedArrivalAt())) {
+    private void validateDeadline(Instant finalDeadline, AiRequestPayload request) {
+        if (finalDeadline.isBefore(request.orderedAt())
+                || finalDeadline.isAfter(request.requestedArrivalAt())) {
             throw new BusinessException(NotificationErrorCode.AI_PROCESSING_FAILED);
         }
     }

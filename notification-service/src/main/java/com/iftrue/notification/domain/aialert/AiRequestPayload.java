@@ -4,7 +4,19 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-public record DeliveryPayload(
+public record AiRequestPayload(
+        Instant orderedAt,
+        Instant requestedArrivalAt,
+        UUID receiverCompanyId,
+        UUID supplierCompanyId,
+        String requesterName,
+        String requesterEmail,
+        String receiverName,
+        String receiverSlackId,
+        UUID productId,
+        String productName,
+        int quantity,
+        String requestMessage,
         Location departureHub,
         List<TransitHub> transitHubs,
         String destinationAddress,

@@ -1,5 +1,6 @@
 package com.iftrue.order.application.service;
 
+import com.iftrue.order.application.dto.PendingOrderResult;
 import com.iftrue.order.domain.Order;
 import com.iftrue.order.domain.OrderRepository;
 import com.iftrue.order.global.exception.BusinessException;
@@ -19,7 +20,7 @@ public class OrderTransactionService {
     private final RequestedArrivalTimeValidator requestedArrivalTimeValidator;
 
     @Transactional
-    public UUID createPendingOrder(OrderCreateRequest request) {
+    public PendingOrderResult createPendingOrder(OrderCreateRequest request) {
         requestedArrivalTimeValidator.validate(request.requestedArrivalAt());
 
         Order order = Order.create(
@@ -31,7 +32,12 @@ public class OrderTransactionService {
                 request.requestedArrivalAt()
         );
 
-        return orderRepository.save(order).getId();
+        Order savedOrder = orderRepository.saveAndFlush(order);
+
+        return new PendingOrderResult(
+                savedOrder.getId(),
+                savedOrder.getCreatedAt()
+        );
     }
 
     @Transactional

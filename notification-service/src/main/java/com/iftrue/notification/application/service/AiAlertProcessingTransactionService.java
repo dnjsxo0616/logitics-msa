@@ -44,8 +44,7 @@ public class AiAlertProcessingTransactionService {
                     aiAlert.startProcessing();
                     return new AiAlertProcessingTarget(
                             aiAlert.getId(),
-                            aiAlert.getOrderPayload(),
-                            aiAlert.getDeliveryPayload()
+                            aiAlert.getRequestPayload()
                     );
                 });
     }

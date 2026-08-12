@@ -26,8 +26,7 @@ public class AiAlertProcessor {
 
         try {
             result = deadlineGenerationService.generate(
-                    target.orderPayload(),
-                    target.deliveryPayload()
+                    target.requestPayload()
             );
         } catch (RuntimeException exception) {
             transactionService.handleFailure(
