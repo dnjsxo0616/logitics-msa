@@ -4,6 +4,7 @@ import com.iftrue.order.application.service.OrderService;
 import com.iftrue.order.global.security.AuthenticatedUser;
 import com.iftrue.order.presentation.controller.api.OrderApi;
 import com.iftrue.order.presentation.dto.OrderCreateRequest;
+import com.iftrue.order.presentation.dto.OrderCreateResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +20,11 @@ public class OrderController implements OrderApi {
 
     @Override
     @PreAuthorize("hasAnyRole('MASTER', 'SUPPLIER_MANAGER')")
-    public ResponseEntity<Void> createOrder(OrderCreateRequest request,
-                                            @AuthenticationPrincipal AuthenticatedUser user) {
-        orderService.createOrder(request, user);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<OrderCreateResponse> createOrder(
+            OrderCreateRequest request,
+            @AuthenticationPrincipal AuthenticatedUser user
+    ) {
+        OrderCreateResponse response = orderService.createOrder(request, user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
