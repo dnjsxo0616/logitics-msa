@@ -33,6 +33,7 @@ public class SecurityConfig {
                         authorize
                                  // 추후  Gateway에 맞춰 실제 공개 경로를 다시 수정.
                                 .requestMatchers(
+                                        "/api/v1/internal/**",
                                         "/actuator/health",
                                         "/swagger-ui/**",
                                         "/v3/api-docs/**",

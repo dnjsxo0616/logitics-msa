@@ -11,6 +11,7 @@ import com.iftrue.notification.infrastructure.client.order.dto.OrderNotification
 import com.iftrue.notification.infrastructure.client.order.dto.OrderStatus;
 import com.iftrue.notification.presentation.dto.DeliveryCreatedRequest;
 import feign.FeignException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class AiAlertCommandService {
 
     private final AiAlertRepository aiAlertRepository;
     private final OrderClient orderClient;
+    private final Validator validator;
 
     public AiAlert create(DeliveryCreatedRequest request) {
         return aiAlertRepository.findByDeliveryId(request.deliveryId())
@@ -54,6 +56,7 @@ public class AiAlertCommandService {
         AiAlert aiAlert = AiAlert.create(
                 orderContext.orderId(),
                 request.deliveryId(),
+                orderContext.toOrderPayload(),
                 request.toDeliveryPayload()
         );
 
@@ -84,7 +87,8 @@ public class AiAlertCommandService {
     }
 
     private void validateOrderContext(UUID requestedOrderId, OrderNotificationContext orderContext) {
-        if (!Objects.equals(requestedOrderId, orderContext.orderId())) {
+        if (!Objects.equals(requestedOrderId, orderContext.orderId())
+                || !validator.validate(orderContext).isEmpty()) {
             throw new BusinessException(NotificationErrorCode.ORDER_SERVICE_CALL_FAILED);
         }
 

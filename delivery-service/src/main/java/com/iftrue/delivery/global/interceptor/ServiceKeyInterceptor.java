@@ -13,7 +13,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 public class ServiceKeyInterceptor implements HandlerInterceptor {
 
-    private static String SERVICE_KEY_HEADER = "X-Internal-Api-Key";
+    private static String SERVICE_KEY_HEADER = "X-Service-Key";
 
     private final String internalServiceKey;
 

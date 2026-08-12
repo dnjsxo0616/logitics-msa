@@ -28,6 +28,9 @@ spring:
     default-schema: notification_schema
     locations: classpath:db/migration
 
+internal:
+  service-key: ${INTERNAL_SERVICE_KEY}
+
 eureka:
   client:
     enabled: ${EUREKA_CLIENT_ENABLED:false}

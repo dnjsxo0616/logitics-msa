@@ -11,7 +11,6 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.UUID;
 
@@ -40,11 +39,9 @@ public class OrderService {
             orderExternalService.checkCompanyExists(request.supplierCompanyId());
 
             ProductResponse product = orderExternalService.getProduct(request.productId());
-            validateProductInfo(product);
 
             UserResponse recipient = orderExternalService.getRecipient(recipientUserId);
 
-            validateRecipientInfo(recipient);
             validateProductSupplier(request, product);
             validateRecipientCompany(request, recipient);
 
@@ -104,21 +101,6 @@ public class OrderService {
         return user.userId();
     }
 
-    private void validateProductInfo(ProductResponse product) {
-        if (product == null || product.companyId() == null) {
-            throw new BusinessException(OrderErrorCode.INVALID_PRODUCT_INFO);
-        }
-    }
-
-    private void validateRecipientInfo(UserResponse recipient) {
-        if (recipient == null
-                || recipient.companyId() == null
-                || !StringUtils.hasText(recipient.name())
-                || !StringUtils.hasText(recipient.slackId())) {
-            throw new BusinessException(OrderErrorCode.INVALID_RECIPIENT_INFO);
-        }
-    }
-
     private void validateDeliveryId(UUID deliveryId) {
         if (deliveryId == null) {
             throw new BusinessException(OrderErrorCode.DELIVERY_CREATION_FAILED);
@@ -127,7 +109,7 @@ public class OrderService {
 
     private void validateProductSupplier(OrderCreateRequest request, ProductResponse product
     ) {
-        if (!request.supplierCompanyId().equals(product.companyId())) {
+        if (!request.supplierCompanyId().equals(product.supplierCompanyId())) {
             throw new BusinessException(OrderErrorCode.PRODUCT_SUPPLIER_MISMATCH);
         }
     }
