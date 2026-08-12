@@ -41,6 +41,8 @@ spring:
             candidate-count: 1
             max-output-tokens: 64
             response-mime-type: application/json
+            thinking-budget: 0
+            include-thoughts: false
 
 notification:
   ai:
