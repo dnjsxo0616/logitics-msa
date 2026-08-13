@@ -14,6 +14,7 @@ public class AiAlertProcessor {
 
     private final AiAlertProcessingTransactionService transactionService;
     private final AiDeadlineGenerationService deadlineGenerationService;
+    private final SlackMessageProcessor slackMessageProcessor;
 
     @Scheduled(fixedDelayString = "${notification.ai.processing-interval}")
     public void processNext() {
@@ -37,6 +38,7 @@ public class AiAlertProcessor {
         }
 
         transactionService.complete(target.aiAlertId(), result);
+        slackMessageProcessor.processForAiAlert(target.aiAlertId());
     }
 
     private String getErrorMessage(RuntimeException exception) {
