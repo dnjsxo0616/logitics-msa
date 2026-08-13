@@ -38,6 +38,9 @@ dependencies {
     // 서비스 간 HTTP 호출
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     // Flyway
     implementation 'org.flywaydb:flyway-core'
     runtimeOnly 'org.flywaydb:flyway-database-postgresql'
