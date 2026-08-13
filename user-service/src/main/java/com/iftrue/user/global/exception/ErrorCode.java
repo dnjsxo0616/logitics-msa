@@ -31,6 +31,7 @@ public enum ErrorCode {
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "U-019", "접근 권한이 없습니다."),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "U-020", "요청한 리소스를 찾을 수 없습니다."),
     BUSINESS_RULE_VIOLATION(HttpStatus.CONFLICT, "U-021", "비즈니스 규칙에 위배되는 요청입니다."),
+    DELIVERY_MANAGER_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,"U-022","배송 담당자 생성에 실패했습니다."),
 
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "U-500", "서버 오류가 발생했습니다.");
 
