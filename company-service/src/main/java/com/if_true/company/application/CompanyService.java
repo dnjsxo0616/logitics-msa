@@ -7,6 +7,7 @@ import com.if_true.company.infrastructure.client.HubClient;
 import com.if_true.company.infrastructure.client.ProductClient;
 import com.if_true.company.presentation.dto.CompanyRequest;
 import com.if_true.company.presentation.dto.CompanyResponse;
+import com.if_true.company.presentation.dto.InternalCompanyResponse;
 import com.if_true.company.presentation.dto.CompanyUpdateRequest;
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
@@ -62,6 +63,10 @@ public class CompanyService {
 
 	public CompanyResponse get(UUID id) {
 		return CompanyResponse.from(findActiveCompany(id));
+	}
+
+	public InternalCompanyResponse getInternalCompany(UUID id) {
+		return InternalCompanyResponse.from(findActiveCompany(id));
 	}
 
 	public Page<CompanyResponse> search(String companyName, CompanyType companyType, UUID hubId, Pageable pageable) {
