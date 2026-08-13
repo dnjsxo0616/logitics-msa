@@ -5,6 +5,7 @@ import com.if_true.product.infrastructure.client.CompanyClient;
 import com.if_true.product.infrastructure.ProductRepository;
 import com.if_true.product.infrastructure.client.HubClient;
 import com.if_true.product.infrastructure.client.dto.CompanyResponse;
+import com.if_true.product.infrastructure.client.dto.ApiResponse;
 import com.if_true.product.infrastructure.client.dto.HubExistsResponse;
 import com.if_true.product.presentation.dto.ProductRequest;
 import com.if_true.product.presentation.dto.ProductResponse;
@@ -20,6 +21,9 @@ import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -33,19 +37,22 @@ public class ProductService {
 	private final HubClient hubClient;
 	private final CircuitBreakerFactory<?, ?> circuitBreakerFactory;
 	private final boolean hubValidationEnabled;
+	private final String gatewaySecret;
 
 	public ProductService(
 		ProductRepository productRepository,
 		CompanyClient companyClient,
 		HubClient hubClient,
 		CircuitBreakerFactory<?, ?> circuitBreakerFactory,
-		@Value("${msa.validation.hub.enabled:false}") boolean hubValidationEnabled
+		@Value("${msa.validation.hub.enabled:false}") boolean hubValidationEnabled,
+		@Value("${msa.security.gateway-secret:local-dev-secret}") String gatewaySecret
 	) {
 		this.productRepository = productRepository;
 		this.companyClient = companyClient;
 		this.hubClient = hubClient;
 		this.circuitBreakerFactory = circuitBreakerFactory;
 		this.hubValidationEnabled = hubValidationEnabled;
+		this.gatewaySecret = gatewaySecret;
 	}
 
 	@Transactional
@@ -144,8 +151,9 @@ public class ProductService {
 	}
 
 	private CompanyResponse validateCompanyExists(UUID companyId) {
+		AuthenticationHeaders headers = resolveAuthenticationHeaders();
 		return circuitBreakerFactory.create("company-service").run(
-			() -> companyClient.getCompany(companyId),
+			() -> companyClient.getCompany(companyId, headers.gatewaySecret(), headers.userId(), headers.userRole()),
 			throwable -> {
 				if (throwable instanceof FeignException.NotFound) {
 					throw new EntityNotFoundException("Company not found: " + companyId);
@@ -159,7 +167,7 @@ public class ProductService {
 		if (!hubValidationEnabled) {
 			return;
 		}
-		HubExistsResponse response = circuitBreakerFactory.create("hub-service").run(
+		ApiResponse<HubExistsResponse> response = circuitBreakerFactory.create("hub-service").run(
 			() -> hubClient.existsHub(hubId),
 			throwable -> {
 				if (throwable instanceof FeignException.Unauthorized) {
@@ -168,8 +176,9 @@ public class ProductService {
 				throw new IllegalStateException("Failed to validate hub.", throwable);
 			}
 		);
+		HubExistsResponse data = response.data();
 
-		if (!response.exists()) {
+		if (data == null || !data.exists()) {
 			throw new EntityNotFoundException("Hub not found: " + hubId);
 		}
 	}
@@ -201,5 +210,30 @@ public class ProductService {
 	private Specification<Product> hubIdEquals(UUID hubId) {
 		return (root, query, criteriaBuilder) ->
 			hubId == null ? criteriaBuilder.conjunction() : criteriaBuilder.equal(root.get("hubId"), hubId);
+	}
+
+	private AuthenticationHeaders resolveAuthenticationHeaders() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !authentication.isAuthenticated()) {
+			throw new IllegalStateException("Missing authentication context.");
+		}
+
+		Object principal = authentication.getPrincipal();
+		if (!(principal instanceof String userId) || !StringUtils.hasText(userId)) {
+			throw new IllegalStateException("Missing authenticated user id.");
+		}
+
+		String userRole = authentication.getAuthorities()
+			.stream()
+			.map(GrantedAuthority::getAuthority)
+			.filter(authority -> authority != null && authority.startsWith("ROLE_"))
+			.map(authority -> authority.substring("ROLE_".length()))
+			.findFirst()
+			.orElseThrow(() -> new IllegalStateException("Missing authenticated user role."));
+
+		return new AuthenticationHeaders(gatewaySecret, userId, userRole);
+	}
+
+	private record AuthenticationHeaders(String gatewaySecret, String userId, String userRole) {
 	}
 }
