@@ -58,10 +58,9 @@ public class SecurityConfig {
 			@Override
 			protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 				throws ServletException, IOException {
-				String gatewaySecretHeader = request.getHeader("X-Gateway-Secret");
 				String userId = request.getHeader("X-User-Id");
 				String userRole = request.getHeader("X-User-Role");
-				if (gatewaySecret.equals(gatewaySecretHeader) && userId != null && !userId.isBlank()) {
+				if (userId != null && !userId.isBlank()) {
 					try {
 						UUID.fromString(userId);
 					} catch (IllegalArgumentException exception) {
@@ -118,7 +117,8 @@ public class SecurityConfig {
 			HttpServletRequest request = attributes.getRequest();
 			copyHeader(request, template, "X-User-Id");
 			copyHeader(request, template, "X-User-Role");
-			copyHeader(request, template, "X-Gateway-Secret");
+			copyHeader(request, template, "X-User-Hub-Id");
+			copyHeader(request, template, "X-User-Company-Id");
 			copyHeader(request, template, HttpHeaders.AUTHORIZATION);
 		};
 	}

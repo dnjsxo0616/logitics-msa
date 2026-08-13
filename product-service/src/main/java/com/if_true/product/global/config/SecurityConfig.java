@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -27,12 +26,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
-
-	private final String gatewaySecret;
-
-	public SecurityConfig(@Value("${msa.security.gateway-secret:local-dev-secret}") String gatewaySecret) {
-		this.gatewaySecret = gatewaySecret;
-	}
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -52,10 +45,9 @@ public class SecurityConfig {
 			@Override
 			protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 				throws ServletException, IOException {
-				String gatewaySecretHeader = request.getHeader("X-Gateway-Secret");
 				String userId = request.getHeader("X-User-Id");
 				String userRole = request.getHeader("X-User-Role");
-				if (gatewaySecret.equals(gatewaySecretHeader) && userId != null && !userId.isBlank()) {
+				if (userId != null && !userId.isBlank()) {
 					try {
 						UUID.fromString(userId);
 					} catch (IllegalArgumentException exception) {
@@ -84,7 +76,8 @@ public class SecurityConfig {
 			HttpServletRequest request = attributes.getRequest();
 			copyHeader(request, template, "X-User-Id");
 			copyHeader(request, template, "X-User-Role");
-			copyHeader(request, template, "X-Gateway-Secret");
+			copyHeader(request, template, "X-User-Hub-Id");
+			copyHeader(request, template, "X-User-Company-Id");
 			copyHeader(request, template, HttpHeaders.AUTHORIZATION);
 		};
 	}
