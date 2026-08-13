@@ -21,3 +21,15 @@ spring:
 
 internal:
   service-key: ${INTERNAL_SERVICE_KEY}
+
+tmap:
+  base-url: https://apis.openapi.sk.com
+  app-key: ${TMAP_APP_KEY:}
+  connect-timeout-ms: 2000
+  read-timeout-ms: 3000
+
+hub-route:
+  generate-all:
+    enabled: true
+    cron: "0 0 4 * * *"
+    throttle-ms: 200

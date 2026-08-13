@@ -1,9 +1,14 @@
 package com.iftrue.hub.application;
 
+import com.iftrue.hub.application.dto.HubRouteAutoCreateRequestDto;
 import com.iftrue.hub.application.dto.HubRouteCreateRequestDto;
 import com.iftrue.hub.application.dto.HubRoutePathResponseDto;
 import com.iftrue.hub.application.dto.HubRouteResponseDto;
 import com.iftrue.hub.application.dto.HubRouteUpdateRequestDto;
+import com.iftrue.hub.application.metrics.HubCoordinate;
+import com.iftrue.hub.application.metrics.HubRouteMetrics;
+import com.iftrue.hub.application.metrics.HubRouteMetricsProvider;
+import com.iftrue.hub.domain.Hub;
 import com.iftrue.hub.domain.HubRepository;
 import com.iftrue.hub.domain.HubRoute;
 import com.iftrue.hub.domain.HubRouteRepository;
@@ -23,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -41,6 +47,7 @@ public class HubRouteService {
     private final HubRouteRepository hubRouteRepository;
     private final HubRepository hubRepository;
     private final CurrentUserProvider currentUserProvider;
+    private final HubRouteMetricsProvider hubRouteMetricsProvider;
 
     @CacheEvict(cacheNames = CacheConfig.HUB_ROUTE_PATH, allEntries = true)
     @Transactional
@@ -55,24 +62,43 @@ public class HubRouteService {
 
         validateHubExists(departureHubId);
         validateHubExists(arrivalHubId);
+        checkRouteDuplicated(departureHubId, arrivalHubId);
 
-        if (hubRouteRepository.existsByDepartureHubIdAndArrivalHubIdAndDeletedAtIsNull(
-                departureHubId, arrivalHubId)) {
-            throw new BusinessException(ErrorCode.HUB_ROUTE_DUPLICATED);
+        HubRouteResponseDto response = saveRoute(departureHubId, arrivalHubId,
+                request.getDurationMinutes(), request.getDistanceKm());
+
+        log.info("[HubRoute] 허브 이동 경로 수동 생성 완료 id={}", response.id());
+
+        return response;
+    }
+
+    @CacheEvict(cacheNames = CacheConfig.HUB_ROUTE_PATH, allEntries = true)
+    @Transactional
+    public HubRouteResponseDto createHubRouteAuto(HubRouteAutoCreateRequestDto request) {
+
+        UUID departureHubId = request.getDepartureHubId();
+        UUID arrivalHubId = request.getArrivalHubId();
+
+        if (departureHubId.equals(arrivalHubId)) {
+            throw new BusinessException(ErrorCode.HUB_ROUTE_SAME_ENDPOINT);
         }
 
-        HubRoute hubRoute = HubRoute.create(
-                departureHubId,
-                arrivalHubId,
-                request.getDurationMinutes(),
-                request.getDistanceKm()
+        Hub departureHub = getHubOrThrow(departureHubId);
+        Hub arrivalHub = getHubOrThrow(arrivalHubId);
+        checkRouteDuplicated(departureHubId, arrivalHubId);
+
+        HubRouteMetrics metrics = hubRouteMetricsProvider.fetch(
+                new HubCoordinate(departureHub.getLatitude(), departureHub.getLongitude()),
+                new HubCoordinate(arrivalHub.getLatitude(), arrivalHub.getLongitude())
         );
 
-        HubRoute savedHubRoute = hubRouteRepository.save(hubRoute);
+        HubRouteResponseDto response = saveRoute(departureHubId, arrivalHubId,
+                metrics.durationMinutes(), metrics.distanceKm());
 
-        log.info("[HubRoute] 허브 이동 경로 생성 완료 id={}", savedHubRoute.getId());
+        log.info("[HubRoute] 허브 이동 경로 자동 생성 완료 id={}, durationMinutes={}, distanceKm={}",
+                response.id(), metrics.durationMinutes(), metrics.distanceKm());
 
-        return HubRouteResponseDto.from(savedHubRoute);
+        return response;
     }
 
     public HubRouteResponseDto getHubRoute(UUID routeId) {
@@ -154,6 +180,23 @@ public class HubRouteService {
         return HubRoutePathResponseDto.direct(route);
     }
 
+    private HubRouteResponseDto saveRoute(
+            UUID departureHubId, UUID arrivalHubId,
+            int durationMinutes, BigDecimal distanceKm) {
+
+        HubRoute hubRoute = HubRoute.create(departureHubId, arrivalHubId, durationMinutes, distanceKm);
+        HubRoute savedHubRoute = hubRouteRepository.save(hubRoute);
+
+        return HubRouteResponseDto.from(savedHubRoute);
+    }
+
+    private void checkRouteDuplicated(UUID departureHubId, UUID arrivalHubId) {
+        if (hubRouteRepository.existsByDepartureHubIdAndArrivalHubIdAndDeletedAtIsNull(
+                departureHubId, arrivalHubId)) {
+            throw new BusinessException(ErrorCode.HUB_ROUTE_DUPLICATED);
+        }
+    }
+
     private Pageable toRoutePageable(Pageable requestedPageable) {
 
         int pageSize = ALLOWED_SIZES.contains(requestedPageable.getPageSize())
@@ -179,6 +222,11 @@ public class HubRouteService {
     private HubRoute getHubRouteOrThrow(UUID routeId) {
         return hubRouteRepository.findByIdAndDeletedAtIsNull(routeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.HUB_ROUTE_NOT_FOUND));
+    }
+
+    private Hub getHubOrThrow(UUID hubId) {
+        return hubRepository.findByIdAndDeletedAtIsNull(hubId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.HUB_NOT_FOUND));
     }
 
     private void validateHubExists(UUID hubId) {

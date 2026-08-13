@@ -1,6 +1,7 @@
 package com.iftrue.hub.presentation;
 
 import com.iftrue.hub.application.HubRouteService;
+import com.iftrue.hub.application.dto.HubRouteAutoCreateRequestDto;
 import com.iftrue.hub.application.dto.HubRouteCreateRequestDto;
 import com.iftrue.hub.application.dto.HubRouteResponseDto;
 import com.iftrue.hub.application.dto.HubRouteUpdateRequestDto;
@@ -38,6 +39,19 @@ public class HubRouteController {
             @Valid @RequestBody HubRouteCreateRequestDto request
     ) {
         HubRouteResponseDto response = hubRouteService.createHubRoute(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.created(response));
+    }
+
+    @Operation(summary = "이동 경로 자동 등록", description = "출발-도착 허브 좌표로 TMap을 조회해 소요시간·거리를 자동 산출하여 경로를 등록합니다. (MASTER 전용)")
+    @PreAuthorize("hasRole('MASTER')")
+    @PostMapping("/auto")
+    public ResponseEntity<ApiResponse<HubRouteResponseDto>> createHubRouteAuto(
+            @Valid @RequestBody HubRouteAutoCreateRequestDto request
+    ) {
+        HubRouteResponseDto response = hubRouteService.createHubRouteAuto(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
