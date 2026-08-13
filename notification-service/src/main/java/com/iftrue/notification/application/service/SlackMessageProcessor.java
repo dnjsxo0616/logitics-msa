@@ -5,7 +5,6 @@ import com.iftrue.notification.global.exception.NotificationErrorCode;
 import com.iftrue.notification.infrastructure.client.slack.SlackClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -20,30 +19,15 @@ public class SlackMessageProcessor {
     private final SlackMessageTransactionService transactionService;
     private final SlackClient slackClient;
 
-    @Scheduled(fixedDelayString = "${notification.slack.processing-interval}")
-    public void processNext() {
-        transactionService.recoverTimedOut();
-        claimNext().ifPresent(this::send);
-    }
-
     public void processForAiAlert(UUID aiAlertId) {
-        claimForAiAlert(aiAlertId).ifPresent(this::send);
+        prepare(aiAlertId).ifPresent(this::send);
     }
 
-    private Optional<SlackMessageDispatchTarget> claimNext() {
+    private Optional<SlackMessageDispatchTarget> prepare(UUID aiAlertId) {
         try {
-            return transactionService.claimNext();
+            return transactionService.prepare(aiAlertId);
         } catch (RuntimeException exception) {
-            log.error("[Slack-Message] 메시지 생성/선점에 실패했습니다.", exception);
-            return Optional.empty();
-        }
-    }
-
-    private Optional<SlackMessageDispatchTarget> claimForAiAlert(UUID aiAlertId) {
-        try {
-            return transactionService.claimForAiAlert(aiAlertId);
-        } catch (RuntimeException exception) {
-            log.error("[Slack-Message] 메시지 생성/선점에 실패했습니다. aiAlertId={}", aiAlertId, exception);
+            log.error("[Slack-Message] 메시지 준비에 실패했습니다. aiAlertId={}", aiAlertId, exception);
             return Optional.empty();
         }
     }
@@ -52,14 +36,27 @@ public class SlackMessageProcessor {
         try {
             slackClient.sendMessage(target.receiverId(), target.message());
         } catch (RuntimeException exception) {
-            transactionService.fail(
-                    target.slackMessageId(),
-                    getErrorMessage(exception)
-            );
+            saveFail(target, getErrorMessage(exception));
             return;
         }
 
-        transactionService.complete(target.slackMessageId(), Instant.now());
+        saveComplete(target);
+    }
+
+    private void saveComplete(SlackMessageDispatchTarget target) {
+        try {
+            transactionService.complete(target.aiAlertId(), target.receiverId(), target.message(), Instant.now());
+        } catch (RuntimeException exception) {
+            log.error("[Slack-Message] 발송 결과 저장에 실패했습니다. aiAlertId={}", target.aiAlertId(), exception);
+        }
+    }
+
+    private void saveFail(SlackMessageDispatchTarget target, String errorMessage) {
+        try {
+            transactionService.fail(target.aiAlertId(), target.receiverId(), target.message(), errorMessage);
+        } catch (RuntimeException exception) {
+            log.error("[Slack-Message] 발송 결과 저장에 실패했습니다. aiAlertId={}", target.aiAlertId(), exception);
+        }
     }
 
     private String getErrorMessage(RuntimeException exception) {

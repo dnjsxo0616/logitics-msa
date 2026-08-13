@@ -17,8 +17,7 @@ public enum NotificationErrorCode implements ErrorCode {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "N-009", "서버 내부 오류가 발생했습니다."),
     INVALID_NOTIFICATION_STATUS(HttpStatus.CONFLICT, "N-010", "허용되지 않는 알림 상태입니다."),
     AI_PROMPT_TOO_LONG(HttpStatus.PAYLOAD_TOO_LARGE, "N-013", "AI 프롬프트가 허용 길이를 초과했습니다."),
-    AI_PROCESSING_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "N-014", "AI 처리 시간이 제한을 초과했습니다."),
-    SLACK_MESSAGE_SEND_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "N-015", "Slack 메시지 발송 시간이 제한을 초과했습니다.");
+    AI_PROCESSING_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "N-014", "AI 처리 시간이 제한을 초과했습니다.");
 
     private final HttpStatus status;
     private final String code;
