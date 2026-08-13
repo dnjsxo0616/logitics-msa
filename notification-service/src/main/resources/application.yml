@@ -53,6 +53,7 @@ notification:
     bot-token: ${SLACK_BOT_TOKEN}
     base-url: ${SLACK_API_BASE_URL:https://slack.com}
     processing-interval: 5s
+    processing-timeout: 2m
     connect-timeout: 3s
     read-timeout: 10s
 
