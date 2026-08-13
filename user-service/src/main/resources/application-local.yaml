@@ -1,0 +1,36 @@
+spring:
+
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
+
+server:
+  port: ${USER_SERVICE_PORT:19001}
+
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URI:http://localhost:19090/eureka}
+
+#eureka:
+#  client:
+#    register-with-eureka: false
+#    fetch-registry: false
+#    enabled: false
+
+service:
+  jwt:
+    secret-key: ${JWT_SECRET}
+    access-expiration: ${JWT_ACCESS_EXPIRATION:3600000}
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+

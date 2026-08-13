@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: hub-service
+
+  profiles:
+    default: local
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: hub_schema
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    schemas: hub_schema
+    default-schema: hub_schema
+    locations: classpath:db/migration
+
+internal:
+  service-key: ${INTERNAL_SERVICE_KEY}
+
+tmap:
+  base-url: https://apis.openapi.sk.com
+  app-key: ${TMAP_APP_KEY:}
+  connect-timeout-ms: 2000
+  read-timeout-ms: 3000
+
+hub-route:
+  generate-all:
+    enabled: true
+    cron: "0 0 4 * * *"
+    throttle-ms: 200

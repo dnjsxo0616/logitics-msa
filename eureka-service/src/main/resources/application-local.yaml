@@ -1,0 +1,12 @@
+server:
+  port: ${EUREKA_PORT:19090}
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
+
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:19090/eureka}

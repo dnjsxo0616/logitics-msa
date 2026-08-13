@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: eureka-server
+
+  # local 환경 실행 기분
+  profiles:
+    default: local
+
+
+

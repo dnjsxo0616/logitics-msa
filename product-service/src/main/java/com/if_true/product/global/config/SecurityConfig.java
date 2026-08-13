@@ -1,0 +1,129 @@
+package com.if_true.product.global.config;
+
+import feign.RequestInterceptor;
+import feign.RequestTemplate;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+@Configuration
+@EnableMethodSecurity
+public class SecurityConfig {
+
+	private final String internalServiceKey;
+
+	public SecurityConfig(
+		@Value("${internal.service-key:local-internal-service-key}") String internalServiceKey
+	) {
+		this.internalServiceKey = internalServiceKey;
+	}
+
+	@Bean
+	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		return http
+			.csrf(csrf -> csrf.disable())
+			.addFilterBefore(internalServiceAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(gatewayHeaderAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+			.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/actuator/health", "/actuator/info").permitAll()
+				.anyRequest().authenticated()
+			)
+			.build();
+	}
+
+	@Bean
+	OncePerRequestFilter gatewayHeaderAuthenticationFilter() {
+		return new OncePerRequestFilter() {
+			@Override
+			protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+				throws ServletException, IOException {
+				String userId = request.getHeader("X-User-Id");
+				String userRole = request.getHeader("X-User-Role");
+				if (userId != null && !userId.isBlank()) {
+					try {
+						UUID.fromString(userId);
+					} catch (IllegalArgumentException exception) {
+						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+						return;
+					}
+					String role = userRole == null || userRole.isBlank() ? "USER" : userRole;
+					UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+						userId,
+						null,
+						List.of(new SimpleGrantedAuthority("ROLE_" + role))
+					);
+					SecurityContextHolder.getContext().setAuthentication(authentication);
+				}
+				filterChain.doFilter(request, response);
+			}
+		};
+	}
+
+	@Bean
+	OncePerRequestFilter internalServiceAuthenticationFilter() {
+		return new OncePerRequestFilter() {
+			@Override
+			protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+				throws ServletException, IOException {
+				if (!request.getRequestURI().startsWith("/api/v1/internal/")) {
+					filterChain.doFilter(request, response);
+					return;
+				}
+
+				String serviceKeyHeader = request.getHeader("X-Service-Key");
+				if (!internalServiceKey.equals(serviceKeyHeader)) {
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					return;
+				}
+
+				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+					"internal-service",
+					null,
+					List.of(new SimpleGrantedAuthority("ROLE_INTERNAL_SERVICE"))
+				);
+				SecurityContextHolder.getContext().setAuthentication(authentication);
+				filterChain.doFilter(request, response);
+			}
+		};
+	}
+
+	@Bean
+	RequestInterceptor gatewayHeaderRequestInterceptor() {
+		return template -> {
+			if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) {
+				return;
+			}
+			HttpServletRequest request = attributes.getRequest();
+			copyHeader(request, template, "X-User-Id");
+			copyHeader(request, template, "X-User-Role");
+			copyHeader(request, template, "X-User-Hub-Id");
+			copyHeader(request, template, "X-User-Company-Id");
+			copyHeader(request, template, HttpHeaders.AUTHORIZATION);
+		};
+	}
+
+	private void copyHeader(HttpServletRequest request, RequestTemplate template, String headerName) {
+		String value = request.getHeader(headerName);
+		if (value != null && !value.isBlank()) {
+			template.header(headerName, value);
+		}
+	}
+}

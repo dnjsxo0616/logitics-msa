@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: delivery-postgres
+    environment:
+      POSTGRES_URL: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:${POSTGRES_PORT}"
+    volumes:
+      - delivery_postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - delivery-network
+
+  delivery-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: delivery-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+      POSTGRES_URL: jdbc:postgresql://postgres:${POSTGRES_PORT}/${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_SCHEMA: ${POSTGRES_SCHEMA}
+      EUREKA_URI: ${EUREKA_URI}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - delivery-network
+
+volumes:
+  delivery_postgres_data:
+
+networks:
+  delivery-network:
+    driver: bridge

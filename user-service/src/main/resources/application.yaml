@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: user-service
+
+  # local 환경 실행 기분
+  profiles:
+    default: local
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+    properties:
+      hibernate:
+        default_schema: user_schema
+        format_sql: true
+        highlight_sql: true
+
+    open-in-view: false
+
+internal:
+  service-key: ${INTERNAL_SERVICE_KEY:temp-secret-key}
+
+cloud:
+  openfeign:
+    client:
+      config:
+        default:
+          connect-timeout: ${FEIGN_CONNECT_TIMEOUT:3000}
+          read-timeout: ${FEIGN_READ_TIMEOUT:5000}

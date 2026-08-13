@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: delivery-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+      
+  jpa:
+    open-in-view: false
+
+internal:
+  service-key: ${INTERNAL_SERVICE_KEY:temp-secret-key}

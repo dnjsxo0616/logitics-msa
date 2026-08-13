@@ -1,0 +1,18 @@
+package com.iftrue.order.presentation.dto;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
+import java.time.Instant;
+import java.util.UUID;
+
+public record OrderCreateRequest(
+        @NotNull UUID receiverCompanyId,
+        @NotNull UUID supplierCompanyId,
+        @NotNull UUID productId,
+        @NotNull @Positive Integer quantity,
+        String requestMessage,
+        @NotNull Instant requestedArrivalAt,
+        UUID recipientUserId
+) {
+}
