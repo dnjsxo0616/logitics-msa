@@ -112,9 +112,9 @@ class InternalHubApiIntegrationTest {
             mockMvc.perform(get("/api/v1/internal/hubs/{hubId}", hubId)
                             .header(SERVICE_KEY_HEADER, VALID_SERVICE_KEY))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(hubId.toString()))
-                    .andExpect(jsonPath("$.name").isNotEmpty())
-                    .andExpect(jsonPath("$.latitude").value(37.5665));
+                    .andExpect(jsonPath("$.data.id").value(hubId.toString()))
+                    .andExpect(jsonPath("$.data.name").isNotEmpty())
+                    .andExpect(jsonPath("$.data.latitude").value(37.5665));
         }
 
         @Test
@@ -134,8 +134,8 @@ class InternalHubApiIntegrationTest {
             mockMvc.perform(get("/api/v1/internal/hubs/{hubId}/exists", hubId)
                             .header(SERVICE_KEY_HEADER, VALID_SERVICE_KEY))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.hubId").value(hubId.toString()))
-                    .andExpect(jsonPath("$.exists").value(true));
+                    .andExpect(jsonPath("$.data.hubId").value(hubId.toString()))
+                    .andExpect(jsonPath("$.data.exists").value(true));
         }
 
         @Test
@@ -144,7 +144,7 @@ class InternalHubApiIntegrationTest {
             mockMvc.perform(get("/api/v1/internal/hubs/{hubId}/exists", UUID.randomUUID())
                             .header(SERVICE_KEY_HEADER, VALID_SERVICE_KEY))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.exists").value(false));
+                    .andExpect(jsonPath("$.data.exists").value(false));
         }
     }
 
@@ -165,11 +165,11 @@ class InternalHubApiIntegrationTest {
                             .param("arrivalHubId", arrival.toString())
                             .header(SERVICE_KEY_HEADER, VALID_SERVICE_KEY))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.totalDuration").value(300))
-                    .andExpect(jsonPath("$.segments.length()").value(1))
-                    .andExpect(jsonPath("$.segments[0].departureHubId").value(departure.toString()))
-                    .andExpect(jsonPath("$.segments[0].arrivalHubId").value(arrival.toString()))
-                    .andExpect(jsonPath("$.segments[0].duration").value(300));
+                    .andExpect(jsonPath("$.data.totalDuration").value(300))
+                    .andExpect(jsonPath("$.data.segments.length()").value(1))
+                    .andExpect(jsonPath("$.data.segments[0].departureHubId").value(departure.toString()))
+                    .andExpect(jsonPath("$.data.segments[0].arrivalHubId").value(arrival.toString()))
+                    .andExpect(jsonPath("$.data.segments[0].duration").value(300));
         }
 
         @Test
@@ -182,8 +182,8 @@ class InternalHubApiIntegrationTest {
                             .param("arrivalHubId", hubId.toString())
                             .header(SERVICE_KEY_HEADER, VALID_SERVICE_KEY))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.totalDuration").value(0))
-                    .andExpect(jsonPath("$.segments.length()").value(0));
+                    .andExpect(jsonPath("$.data.totalDuration").value(0))
+                    .andExpect(jsonPath("$.data.segments.length()").value(0));
         }
 
         @Test
