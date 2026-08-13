@@ -14,6 +14,8 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.iftrue.delivery.domain.common.DomainValidator.requireNonNull;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -70,9 +72,9 @@ public class DeliveryRoute extends DeletableEntity {
             Integer expectedDuration
 
     ) {
-        this.delivery = Objects.requireNonNull(delivery, "배송은 필수입니다.");
-        this.departureHubId = Objects.requireNonNull(departureHubId, "출발 허브 ID는 필수입니다.");
-        this.arrivalHubId = Objects.requireNonNull(arrivalHubId, "도착 허브 ID는 필수입니다.");
+        this.delivery = requireNonNull(delivery, "배송은 필수입니다.");
+        this.departureHubId = requireNonNull(departureHubId, "출발 허브 ID는 필수입니다.");
+        this.arrivalHubId = requireNonNull(arrivalHubId, "도착 허브 ID는 필수입니다.");
 
         validateSequence(sequence);
         validateExpectedDistance(expectedDistance);
@@ -105,7 +107,7 @@ public class DeliveryRoute extends DeletableEntity {
 
     // 허브 배송 담당자 배정
     public void assignHubDeliveryManager(DeliveryManager manager) {
-        Objects.requireNonNull(manager, "배송담당자는 필수입니다.");
+        requireNonNull(manager, "배송담당자는 필수입니다.");
 
         if (status != HubDeliveryStatus.WAITING_FOR_DEPARTURE) {
             throw new IllegalStateException("출발 대기 상태의 경로에만 담당자를 배정할 수 있습니다.");
@@ -127,7 +129,7 @@ public class DeliveryRoute extends DeletableEntity {
             throw new IllegalStateException("허브 배송담당자가 배정되지 않았습니다.");
         }
 
-        this.departedAt = Objects.requireNonNull(departedAt, "출발 시각은 필수입니다.");
+        this.departedAt = requireNonNull(departedAt, "출발 시각은 필수입니다.");
         this.status = HubDeliveryStatus.IN_TRANSIT;
 
     }
@@ -139,7 +141,7 @@ public class DeliveryRoute extends DeletableEntity {
             throw new IllegalStateException("이동 중인 배송 경로만 도착 처리할 수 있습니다.");
         }
 
-        Instant validatedArrivedAt = Objects.requireNonNull(arrivedAt, "도착 시각은 필수입니다.");
+        Instant validatedArrivedAt = requireNonNull(arrivedAt, "도착 시각은 필수입니다.");
 
         if (departedAt == null) {
             throw new IllegalStateException("출발 시각이 기록되지 않았습니다.");

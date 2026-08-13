@@ -1,5 +1,6 @@
 package com.iftrue.order.application.service;
 
+import com.iftrue.order.application.dto.PendingOrderResult;
 import com.iftrue.order.global.exception.BusinessException;
 import com.iftrue.order.global.exception.OrderErrorCode;
 import com.iftrue.order.global.security.AuthenticatedUser;
@@ -7,12 +8,13 @@ import com.iftrue.order.infrastructure.client.delivery.dto.DeliveryCreateRequest
 import com.iftrue.order.infrastructure.client.product.dto.ProductResponse;
 import com.iftrue.order.infrastructure.client.user.dto.UserResponse;
 import com.iftrue.order.presentation.dto.OrderCreateRequest;
+import com.iftrue.order.presentation.dto.OrderCreateResponse;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Service
@@ -26,11 +28,12 @@ public class OrderService {
     private final OrderStatusRetryService orderStatusRetryService;
     private final OrderExternalService orderExternalService;
 
-    public void createOrder(OrderCreateRequest request, AuthenticatedUser user) {
+    public OrderCreateResponse createOrder(OrderCreateRequest request, AuthenticatedUser user) {
         validateCompanyScope(request, user);
         UUID recipientUserId = resolveRecipientUserId(request, user);
 
-        UUID orderId = orderTransactionService.createPendingOrder(request);
+        PendingOrderResult pendingOrder = orderTransactionService.createPendingOrder(request);
+        UUID orderId = pendingOrder.orderId();
 
         boolean inventoryDecreased = false;
         UUID deliveryId = null;
@@ -40,11 +43,9 @@ public class OrderService {
             orderExternalService.checkCompanyExists(request.supplierCompanyId());
 
             ProductResponse product = orderExternalService.getProduct(request.productId());
-            validateProductInfo(product);
 
             UserResponse recipient = orderExternalService.getRecipient(recipientUserId);
 
-            validateRecipientInfo(recipient);
             validateProductSupplier(request, product);
             validateRecipientCompany(request, recipient);
 
@@ -54,14 +55,18 @@ public class OrderService {
 
             DeliveryCreateRequest deliveryRequest = createDeliveryRequest(
                     orderId,
+                    pendingOrder.orderedAt(),
                     request,
-                    recipient
+                    recipient,
+                    product
             );
 
             deliveryId = orderExternalService.createDelivery(deliveryRequest);
             validateDeliveryId(deliveryId);
 
             orderStatusRetryService.confirmWithRetry(orderId);
+
+            return new OrderCreateResponse(orderId, deliveryId);
 
         } catch (RuntimeException exception) {
             RuntimeException failure = exception;
@@ -104,21 +109,6 @@ public class OrderService {
         return user.userId();
     }
 
-    private void validateProductInfo(ProductResponse product) {
-        if (product == null || product.companyId() == null) {
-            throw new BusinessException(OrderErrorCode.INVALID_PRODUCT_INFO);
-        }
-    }
-
-    private void validateRecipientInfo(UserResponse recipient) {
-        if (recipient == null
-                || recipient.companyId() == null
-                || !StringUtils.hasText(recipient.name())
-                || !StringUtils.hasText(recipient.slackId())) {
-            throw new BusinessException(OrderErrorCode.INVALID_RECIPIENT_INFO);
-        }
-    }
-
     private void validateDeliveryId(UUID deliveryId) {
         if (deliveryId == null) {
             throw new BusinessException(OrderErrorCode.DELIVERY_CREATION_FAILED);
@@ -127,7 +117,7 @@ public class OrderService {
 
     private void validateProductSupplier(OrderCreateRequest request, ProductResponse product
     ) {
-        if (!request.supplierCompanyId().equals(product.companyId())) {
+        if (!request.supplierCompanyId().equals(product.supplierCompanyId())) {
             throw new BusinessException(OrderErrorCode.PRODUCT_SUPPLIER_MISMATCH);
         }
     }
@@ -141,15 +131,26 @@ public class OrderService {
 
     private DeliveryCreateRequest createDeliveryRequest(
             UUID orderId,
+            Instant orderedAt,
             OrderCreateRequest request,
-            UserResponse recipient
+            UserResponse recipient,
+            ProductResponse product
     ) {
         return new DeliveryCreateRequest(
                 orderId,
+                orderedAt,
+                request.requestedArrivalAt(),
                 request.supplierCompanyId(),
                 request.receiverCompanyId(),
                 recipient.name(),
-                recipient.slackId()
+                recipient.email(),
+                recipient.slackId(),
+                new DeliveryCreateRequest.ProductInfo(
+                        request.productId(),
+                        product.productName(),
+                        request.quantity()
+                ),
+                request.requestMessage()
         );
     }
 

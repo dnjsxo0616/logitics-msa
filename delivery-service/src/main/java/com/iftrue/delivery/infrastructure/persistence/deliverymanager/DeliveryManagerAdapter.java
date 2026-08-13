@@ -36,4 +36,29 @@ public class DeliveryManagerAdapter implements DeliveryManagerRepository {
     public List<DeliveryManager> findAllByTypeAndHubIdAndDeletedAtIsNullOrderBySequenceAsc(DeliveryManagerType deliveryManagerType, UUID destinationHubId) {
         return jpaDeliveryManagerRepository.findAllByTypeAndHubIdAndDeletedAtIsNullOrderBySequenceAsc(deliveryManagerType, destinationHubId);
     }
+
+    @Override
+    public long countByTypeAndDeletedAtIsNull(DeliveryManagerType deliveryManagerType) {
+        return jpaDeliveryManagerRepository.countByTypeAndDeletedAtIsNull(deliveryManagerType);
+    }
+
+    @Override
+    public Optional<DeliveryManager> findTopByTypeOrderBySequenceDesc(DeliveryManagerType deliveryManagerType) {
+        return jpaDeliveryManagerRepository.findTopByTypeOrderBySequenceDesc(deliveryManagerType);
+    }
+
+    @Override
+    public long countByTypeAndHubIdAndDeletedAtIsNull(DeliveryManagerType deliveryManagerType, UUID hubId) {
+        return jpaDeliveryManagerRepository.countByTypeAndHubIdAndDeletedAtIsNull(deliveryManagerType, hubId);
+    }
+
+    @Override
+    public Optional<DeliveryManager> findTopByTypeAndHubIdOrderBySequenceDesc(DeliveryManagerType deliveryManagerType, UUID hubId) {
+        return jpaDeliveryManagerRepository.findTopByTypeAndHubIdOrderBySequenceDesc(deliveryManagerType, hubId);
+    }
+
+    @Override
+    public boolean existsById(UUID deliveryUserId) {
+        return jpaDeliveryManagerRepository.existsById(deliveryUserId);
+    }
 }

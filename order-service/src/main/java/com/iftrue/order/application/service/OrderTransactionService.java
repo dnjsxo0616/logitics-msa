@@ -1,5 +1,6 @@
 package com.iftrue.order.application.service;
 
+import com.iftrue.order.application.dto.PendingOrderResult;
 import com.iftrue.order.domain.Order;
 import com.iftrue.order.domain.OrderRepository;
 import com.iftrue.order.global.exception.BusinessException;
@@ -16,18 +17,27 @@ import java.util.UUID;
 public class OrderTransactionService {
 
     private final OrderRepository orderRepository;
+    private final RequestedArrivalTimeValidator requestedArrivalTimeValidator;
 
     @Transactional
-    public UUID createPendingOrder(OrderCreateRequest request) {
+    public PendingOrderResult createPendingOrder(OrderCreateRequest request) {
+        requestedArrivalTimeValidator.validate(request.requestedArrivalAt());
+
         Order order = Order.create(
                 request.receiverCompanyId(),
                 request.supplierCompanyId(),
                 request.productId(),
                 request.quantity(),
-                request.requestMessage()
+                request.requestMessage(),
+                request.requestedArrivalAt()
         );
 
-        return orderRepository.save(order).getId();
+        Order savedOrder = orderRepository.saveAndFlush(order);
+
+        return new PendingOrderResult(
+                savedOrder.getId(),
+                savedOrder.getCreatedAt()
+        );
     }
 
     @Transactional
@@ -40,6 +50,12 @@ public class OrderTransactionService {
     public void failOrder(UUID orderId) {
         Order order = getOrder(orderId);
         order.fail();
+    }
+
+    @Transactional
+    public void completeOrder(UUID orderId) {
+        Order order = getOrder(orderId);
+        order.complete();
     }
 
     private Order getOrder(UUID orderId) {

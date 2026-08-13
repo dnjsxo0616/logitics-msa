@@ -10,4 +10,6 @@ public interface DeliveryRepository {
     Optional<Delivery> findById(UUID deliveryId);
 
     boolean existsByOrderId(UUID orderId);
+
+    Optional<Delivery> findByOrderId(UUID orderId);
 }

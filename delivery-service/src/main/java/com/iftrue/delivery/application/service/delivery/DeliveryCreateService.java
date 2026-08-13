@@ -1,22 +1,22 @@
 package com.iftrue.delivery.application.service.delivery;
 
+import com.iftrue.delivery.application.dto.delivery.CreatedDelivery;
 import com.iftrue.delivery.application.dto.delivery.DeliveryCreateCommand;
 import com.iftrue.delivery.application.dto.delivery.DeliveryCreateResult;
-import com.iftrue.delivery.application.service.deliverymanager.DeliveryManagerAssignmentService;
-import com.iftrue.delivery.domain.delivery.Delivery;
 import com.iftrue.delivery.domain.delivery.DeliveryRepository;
-import com.iftrue.delivery.domain.deliverymanager.DeliveryManager;
-import com.iftrue.delivery.domain.deliveryroute.DeliveryRoute;
 import com.iftrue.delivery.global.exception.DeliveryServiceException;
 import com.iftrue.delivery.global.exception.ErrorCode;
+import com.iftrue.delivery.infrastructure.client.CompanyClient;
 import com.iftrue.delivery.infrastructure.client.HubClient;
-import com.iftrue.delivery.infrastructure.client.dto.HubRouteResponse;
-import com.iftrue.delivery.infrastructure.client.dto.HubRouteSegment;
+import com.iftrue.delivery.infrastructure.client.NotificationClient;
+import com.iftrue.delivery.infrastructure.client.UserClient;
+import com.iftrue.delivery.infrastructure.client.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,61 +24,72 @@ public class DeliveryCreateService {
 
     private final HubClient hubClient;
     private final DeliveryRepository deliveryRepository;
-    private final DeliveryManagerAssignmentService deliveryManagerAssignmentService;
+    private final CompanyClient companyClient;
+    private final DeliveryCreateTransactionService transactionService;
+    private final NotificationClient notificationClient;
+    private final UserClient userClient;
 
-
-    @Transactional
     public DeliveryCreateResult create(DeliveryCreateCommand command) {
 
         if (deliveryRepository.existsByOrderId(command.orderId())) {
-            throw new DeliveryServiceException(ErrorCode.DELIVERY_DUPLICATE, Map.of("orderId", command.orderId()));
+            throw new DeliveryServiceException(
+                    ErrorCode.DELIVERY_DUPLICATE,
+                    Map.of("orderId", command.orderId())
+            );
         }
+
+        CompanyResponse supplierCompany =
+                companyClient.getCompany(command.supplierCompanyId()).data();
+
+        CompanyResponse recipientCompany =
+                companyClient.getCompany(command.recipientCompanyId()).data();
 
         HubRouteResponse shortestRoute =
                 hubClient.getShortestRoute(
-                        command.departureHubId(),
-                        command.destinationHubId()
+                        supplierCompany.hubId(),
+                        recipientCompany.hubId()
                 ).data();
 
-        Delivery delivery = Delivery.create(
-                command.orderId(),
-                command.departureHubId(),
-                command.destinationHubId(),
-                command.deliveryAddress(),
-                command.recipientName(),
-                command.recipientSlackId()
-        );
-
-        if (shortestRoute.isSameHub()) {
-            DeliveryRoute deliveryRoute = delivery.addSameHubRoute();
-
-            DeliveryManager manager =
-                    deliveryManagerAssignmentService.nextHubManager();
-
-            deliveryRoute.assignHubDeliveryManager(manager);
-
-        } else {
-            for (HubRouteSegment segment : shortestRoute.segments()) {
-                DeliveryRoute deliveryRoute = delivery.addRoute(
-                        segment.departureHubId(),
-                        segment.arrivalHubId(),
-                        segment.sequence(),
-                        segment.distance(),
-                        segment.duration()
+        CreatedDelivery createdDelivery =
+                transactionService.create(
+                        command,
+                        supplierCompany,
+                        recipientCompany,
+                        shortestRoute
                 );
 
-                DeliveryManager manager =
-                        deliveryManagerAssignmentService.nextHubManager();
+        HubResponse departureHub =
+                hubClient.getHub(createdDelivery.departureHubId()).data();
 
-                deliveryRoute.assignHubDeliveryManager(manager);
-            }
-        }
+        List<HubResponse> transitHubs =
+                createdDelivery.deliveryRoutes().stream()
+                        .map(CreatedDelivery.RouteInfo::arrivalHubId)
+                        .filter(hubId ->
+                                !hubId.equals(createdDelivery.destinationHubId())
+                        )
+                        .distinct()
+                        .map(hubId -> hubClient.getHub(hubId).data())
+                        .toList();
 
+        UUID managerId = createdDelivery.deliveryRoutes()
+                .get(0)
+                .hubDeliveryManagerId();
 
-        Delivery savedDelivery = deliveryRepository.save(delivery);
+        UserResponse manager =
+                userClient.getUser(managerId).data();
 
-        // TODO: 배송 생성 후 AI 마감 시간 계산 호출
+        notificationClient.createDeliveryNotification(
+                NotificationCreateRequest.of(
+                        createdDelivery,
+                        command,
+                        supplierCompany,
+                        recipientCompany,
+                        departureHub,
+                        transitHubs,
+                        manager
+                )
+        );
 
-        return new DeliveryCreateResult(savedDelivery.getId());
+        return DeliveryCreateResult.from(createdDelivery);
     }
 }

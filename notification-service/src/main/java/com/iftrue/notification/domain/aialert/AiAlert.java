@@ -14,7 +14,6 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -39,8 +38,8 @@ public class AiAlert extends BaseEntity {
     private UUID deliveryId;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "delivery_payload", nullable = false, columnDefinition = "jsonb")
-    private DeliveryPayload deliveryPayload;
+    @Column(name = "request_payload", nullable = false, columnDefinition = "jsonb")
+    private AiRequestPayload requestPayload;
 
     @Column(name = "prompt", columnDefinition = "TEXT")
     private String prompt;
@@ -53,49 +52,39 @@ public class AiAlert extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
-    @ColumnDefault("'PENDING'")
     private AiAlertStatus status;
 
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    @Column(name = "retry_count", nullable = false)
-    @ColumnDefault("0")
-    private int retryCount;
-
-    @Column(name = "next_retry_at")
-    private Instant nextRetryAt;
-
     private AiAlert(
             UUID orderId,
             UUID deliveryId,
-            DeliveryPayload deliveryPayload
+            AiRequestPayload requestPayload
     ) {
         this.orderId = orderId;
         this.deliveryId = deliveryId;
-        this.deliveryPayload = deliveryPayload;
+        this.requestPayload = requestPayload;
         this.status = AiAlertStatus.PENDING;
-        this.retryCount = 0;
     }
 
     public static AiAlert create(
             UUID orderId,
             UUID deliveryId,
-            DeliveryPayload deliveryPayload
+            AiRequestPayload requestPayload
     ) {
         validateRequired(orderId);
         validateRequired(deliveryId);
-        validateRequired(deliveryPayload);
+        validateRequired(requestPayload);
 
-        return new AiAlert(orderId, deliveryId, deliveryPayload);
+        return new AiAlert(orderId, deliveryId, requestPayload);
     }
 
     public void startProcessing() {
-        validateStatus(AiAlertStatus.PENDING, AiAlertStatus.RETRY_WAIT);
+        validateStatus(AiAlertStatus.PENDING);
 
         this.status = AiAlertStatus.PROCESSING;
         this.errorMessage = null;
-        this.nextRetryAt = null;
     }
 
     public void complete(
@@ -113,21 +102,6 @@ public class AiAlert extends BaseEntity {
         this.finalDeadline = finalDeadline;
         this.status = AiAlertStatus.COMPLETED;
         this.errorMessage = null;
-        this.nextRetryAt = null;
-    }
-
-    public void scheduleRetry(
-            String errorMessage,
-            Instant nextRetryAt
-    ) {
-        validateStatus(AiAlertStatus.PROCESSING);
-        validateText(errorMessage);
-        validateRequired(nextRetryAt);
-
-        this.retryCount++;
-        this.errorMessage = errorMessage;
-        this.nextRetryAt = nextRetryAt;
-        this.status = AiAlertStatus.RETRY_WAIT;
     }
 
     public void fail(String errorMessage) {
@@ -135,18 +109,15 @@ public class AiAlert extends BaseEntity {
         validateText(errorMessage);
 
         this.errorMessage = errorMessage;
-        this.nextRetryAt = null;
         this.status = AiAlertStatus.FAILED;
     }
 
     public void cancel() {
         validateStatus(
                 AiAlertStatus.PENDING,
-                AiAlertStatus.PROCESSING,
-                AiAlertStatus.RETRY_WAIT
+                AiAlertStatus.PROCESSING
         );
 
-        this.nextRetryAt = null;
         this.status = AiAlertStatus.CANCELED;
     }
 
