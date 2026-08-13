@@ -21,10 +21,15 @@ public class InternalUserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         return new InternalUserResponse(
-                user.getCompanyId(),
+                user.getId(),
                 user.getUsername(),
+                user.getNickname(),
                 user.getEmail(),
-                user.getSlackId()
+                user.getSlackId(),
+                user.getRole(),
+                user.getHubId(),
+                user.getCompanyId(),
+                user.getStatus()
         );
     }
 }
