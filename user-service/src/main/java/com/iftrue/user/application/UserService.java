@@ -203,12 +203,7 @@ public class UserService {
                 deliveryClient.createDelivery(
                         request
                 );
-        // 응답 자체가 없는 경우
-        if (response == null) {
-            throw new BusinessException(
-                    ErrorCode.DELIVERY_MANAGER_CREATE_FAILED
-            );
-        }
+       
         // data가 없는 경우
         DeliveryManagerCreateResponse deliveryResponse =
                 response.getData();
