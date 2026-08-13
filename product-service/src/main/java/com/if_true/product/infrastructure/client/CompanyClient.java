@@ -13,7 +13,6 @@ public interface CompanyClient {
 	@GetMapping("/api/v1/companies/{companyId}")
 	CompanyResponse getCompany(
 		@PathVariable UUID companyId,
-		@RequestHeader("X-Gateway-Secret") String gatewaySecret,
 		@RequestHeader("X-User-Id") String userId,
 		@RequestHeader("X-User-Role") String userRole
 	);

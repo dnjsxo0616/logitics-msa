@@ -4,8 +4,8 @@ import com.if_true.product.domain.Product;
 import com.if_true.product.infrastructure.client.CompanyClient;
 import com.if_true.product.infrastructure.ProductRepository;
 import com.if_true.product.infrastructure.client.HubClient;
-import com.if_true.product.infrastructure.client.dto.CompanyResponse;
 import com.if_true.product.infrastructure.client.dto.ApiResponse;
+import com.if_true.product.infrastructure.client.dto.CompanyResponse;
 import com.if_true.product.infrastructure.client.dto.HubExistsResponse;
 import com.if_true.product.presentation.dto.ProductRequest;
 import com.if_true.product.presentation.dto.ProductResponse;
@@ -37,22 +37,19 @@ public class ProductService {
 	private final HubClient hubClient;
 	private final CircuitBreakerFactory<?, ?> circuitBreakerFactory;
 	private final boolean hubValidationEnabled;
-	private final String gatewaySecret;
 
 	public ProductService(
 		ProductRepository productRepository,
 		CompanyClient companyClient,
 		HubClient hubClient,
 		CircuitBreakerFactory<?, ?> circuitBreakerFactory,
-		@Value("${msa.validation.hub.enabled:false}") boolean hubValidationEnabled,
-		@Value("${msa.security.gateway-secret:local-dev-secret}") String gatewaySecret
+		@Value("${msa.validation.hub.enabled:false}") boolean hubValidationEnabled
 	) {
 		this.productRepository = productRepository;
 		this.companyClient = companyClient;
 		this.hubClient = hubClient;
 		this.circuitBreakerFactory = circuitBreakerFactory;
 		this.hubValidationEnabled = hubValidationEnabled;
-		this.gatewaySecret = gatewaySecret;
 	}
 
 	@Transactional
@@ -153,7 +150,7 @@ public class ProductService {
 	private CompanyResponse validateCompanyExists(UUID companyId) {
 		AuthenticationHeaders headers = resolveAuthenticationHeaders();
 		return circuitBreakerFactory.create("company-service").run(
-			() -> companyClient.getCompany(companyId, headers.gatewaySecret(), headers.userId(), headers.userRole()),
+			() -> companyClient.getCompany(companyId, headers.userId(), headers.userRole()),
 			throwable -> {
 				if (throwable instanceof FeignException.NotFound) {
 					throw new EntityNotFoundException("Company not found: " + companyId);
@@ -231,9 +228,9 @@ public class ProductService {
 			.findFirst()
 			.orElseThrow(() -> new IllegalStateException("Missing authenticated user role."));
 
-		return new AuthenticationHeaders(gatewaySecret, userId, userRole);
+		return new AuthenticationHeaders(userId, userRole);
 	}
 
-	private record AuthenticationHeaders(String gatewaySecret, String userId, String userRole) {
+	private record AuthenticationHeaders(String userId, String userRole) {
 	}
 }
