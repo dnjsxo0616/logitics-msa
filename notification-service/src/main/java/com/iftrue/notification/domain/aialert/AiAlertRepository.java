@@ -28,18 +28,10 @@ public interface AiAlertRepository extends JpaRepository<AiAlert, UUID> {
             FROM notification_schema.p_ai_alert ai_alert
             WHERE ai_alert.deleted_at IS NULL
               AND ai_alert.status = 'COMPLETED'
-              AND (
-                  NOT EXISTS (
-                      SELECT 1
-                      FROM notification_schema.p_slack_message slack_message
-                      WHERE slack_message.ai_alert_id = ai_alert.id
-                  )
-                  OR EXISTS (
-                      SELECT 1
-                      FROM notification_schema.p_slack_message slack_message
-                      WHERE slack_message.ai_alert_id = ai_alert.id
-                        AND slack_message.status = 'WAITING_CONFIRMATION'
-                  )
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM notification_schema.p_slack_message slack_message
+                  WHERE slack_message.ai_alert_id = ai_alert.id
               )
             ORDER BY ai_alert.created_at
             LIMIT 1

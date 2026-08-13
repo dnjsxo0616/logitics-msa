@@ -6,6 +6,7 @@ import com.iftrue.notification.domain.aialert.AiAlertRepository;
 import com.iftrue.notification.domain.slackmessage.SlackMessage;
 import com.iftrue.notification.domain.slackmessage.SlackMessageRepository;
 import com.iftrue.notification.domain.slackmessage.SlackMessageStatus;
+import com.iftrue.notification.global.config.SlackProperties;
 import com.iftrue.notification.global.exception.BusinessException;
 import com.iftrue.notification.global.exception.NotificationErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +21,23 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SlackMessageTransactionService {
 
+    private static final String TIMEOUT_ERROR_MESSAGE =
+            NotificationErrorCode.SLACK_MESSAGE_SEND_TIMEOUT.getCode()
+                    + ": "
+                    + NotificationErrorCode.SLACK_MESSAGE_SEND_TIMEOUT.getMessage();
+
     private final AiAlertRepository aiAlertRepository;
     private final SlackMessageRepository slackMessageRepository;
     private final SlackMessageFormatter slackMessageFormatter;
+    private final SlackProperties slackProperties;
+
+    @Transactional
+    public void recoverTimedOut() {
+        Instant timeoutThreshold = Instant.now().minus(slackProperties.processingTimeout());
+
+        slackMessageRepository.findNextTimedOutSending(timeoutThreshold)
+                .ifPresent(slackMessage -> slackMessage.fail(TIMEOUT_ERROR_MESSAGE));
+    }
 
     @Transactional
     public Optional<SlackMessageDispatchTarget> claimForAiAlert(UUID aiAlertId) {
@@ -59,15 +74,11 @@ public class SlackMessageTransactionService {
     }
 
     private Optional<SlackMessageDispatchTarget> createAndClaim(AiAlert aiAlert) {
-        SlackMessage slackMessage = slackMessageRepository
-                .findByAiAlert_Id(aiAlert.getId())
-                .orElseGet(() -> create(aiAlert));
-
-        if (slackMessage.getStatus() != SlackMessageStatus.WAITING_CONFIRMATION) {
+        if (slackMessageRepository.existsByAiAlert_Id(aiAlert.getId())) {
             return Optional.empty();
         }
 
-        slackMessage.startSending();
+        SlackMessage slackMessage = create(aiAlert);
 
         return Optional.of(new SlackMessageDispatchTarget(
                 slackMessage.getId(),
