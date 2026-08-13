@@ -1,6 +1,7 @@
 package com.if_true.company.presentation;
 
 import com.if_true.company.application.CompanyService;
+import com.if_true.company.global.response.ApiResponse;
 import com.if_true.company.presentation.dto.InternalCompanyResponse;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +20,7 @@ public class InternalCompanyController {
 	}
 
 	@GetMapping("/{companyId}")
-	public InternalCompanyResponse getCompany(@PathVariable UUID companyId) {
-		return companyService.getInternalCompany(companyId);
+	public ApiResponse<InternalCompanyResponse> getCompany(@PathVariable UUID companyId) {
+		return ApiResponse.success(companyService.getInternalCompany(companyId));
 	}
 }
