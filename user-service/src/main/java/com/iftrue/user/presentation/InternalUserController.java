@@ -1,13 +1,12 @@
 package com.iftrue.user.presentation;
 
 import com.iftrue.user.application.InternalUserService;
+import com.iftrue.user.global.response.ApiResponse;
 import com.iftrue.user.presentation.response.InternalUserResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -19,12 +18,12 @@ public class InternalUserController {
     private final InternalUserService internalUserService;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<InternalUserResponse> getUser(
+    public ResponseEntity<ApiResponse<InternalUserResponse>> getUser(
             @PathVariable UUID userId
     ) {
-        return ResponseEntity.ok(
-                internalUserService.getUser(userId)
-        );
+        InternalUserResponse response = internalUserService.getUser(userId);
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(HttpStatus.OK,response));
     }
 
 }
