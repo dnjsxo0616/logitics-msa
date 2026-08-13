@@ -5,7 +5,6 @@ import com.if_true.product.infrastructure.client.CompanyClient;
 import com.if_true.product.infrastructure.ProductRepository;
 import com.if_true.product.infrastructure.client.HubClient;
 import com.if_true.product.infrastructure.client.dto.CompanyResponse;
-import com.if_true.product.infrastructure.client.dto.ApiResponse;
 import com.if_true.product.infrastructure.client.dto.HubExistsResponse;
 import com.if_true.product.presentation.dto.ProductRequest;
 import com.if_true.product.presentation.dto.ProductResponse;
@@ -164,7 +163,7 @@ public class ProductService {
 		if (!hubValidationEnabled) {
 			return;
 		}
-		ApiResponse<HubExistsResponse> response = circuitBreakerFactory.create("hub-service").run(
+		HubExistsResponse data = circuitBreakerFactory.create("hub-service").run(
 			() -> hubClient.existsHub(hubId),
 			throwable -> {
 				if (throwable instanceof FeignException.Unauthorized) {
@@ -173,7 +172,6 @@ public class ProductService {
 				throw new IllegalStateException("Failed to validate hub.", throwable);
 			}
 		);
-		HubExistsResponse data = response.data();
 
 		if (data == null || !data.exists()) {
 			throw new EntityNotFoundException("Hub not found: " + hubId);
