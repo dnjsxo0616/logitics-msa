@@ -19,6 +19,11 @@ spring:
     schemas: delivery_schema
     default-schema: delivery_schema
 
+  data:
+    redis:
+      host: localhost
+      port: ${REDIS_PORT:6379}
+
 eureka:
   client:
     service-url:

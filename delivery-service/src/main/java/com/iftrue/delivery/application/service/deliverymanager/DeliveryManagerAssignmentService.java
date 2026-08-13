@@ -5,11 +5,11 @@ import com.iftrue.delivery.domain.deliverymanager.DeliveryManagerRepository;
 import com.iftrue.delivery.domain.deliverymanager.DeliveryManagerType;
 import com.iftrue.delivery.global.exception.DeliveryServiceException;
 import com.iftrue.delivery.global.exception.ErrorCode;
+import com.iftrue.delivery.infrastructure.redis.DeliveryManagerRoundRobinCounter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,10 +18,11 @@ import java.util.UUID;
 public class DeliveryManagerAssignmentService {
 
     private final DeliveryManagerRepository deliveryManagerRepository;
+    private final DeliveryManagerRoundRobinCounter deliveryManagerRoundRobinCounter;
 
     @Transactional
     public DeliveryManager nextHubManager() {
-        // TODO: 동시성 이슈 해결 필요, 현재 단계 기본 구현 빠르게
+
         List<DeliveryManager> deliveryManagers = deliveryManagerRepository
                 .findAllByTypeAndDeletedAtIsNullOrderBySequenceAsc(DeliveryManagerType.HUB);
 
@@ -29,32 +30,15 @@ public class DeliveryManagerAssignmentService {
             throw new DeliveryServiceException(ErrorCode.DELIVERY_MANAGER_NOT_FOUND);
         }
 
-        DeliveryManager lastAssignedDeliveryManager = deliveryManagers.stream()
-                .filter(deliveryManager -> deliveryManager.getLastAssignedAt() != null)
-                .max(Comparator.comparing(
-                        DeliveryManager::getLastAssignedAt
-                ))
-                .orElse(null);
+        long counter = deliveryManagerRoundRobinCounter.nextHub();
 
-        DeliveryManager nextManager;
+        int index = (int) ((counter - 1) % deliveryManagers.size());
 
-
-        if (lastAssignedDeliveryManager == null) {
-            nextManager = deliveryManagers.get(0);
-        } else {
-            int currentIndex = deliveryManagers.indexOf(lastAssignedDeliveryManager);
-            int nextIndex = (currentIndex + 1) % deliveryManagers.size();
-            nextManager = deliveryManagers.get(nextIndex);
-        }
-
-        nextManager.markAssignedAt();
-
-        return nextManager;
+        return deliveryManagers.get(index);
     }
 
     @Transactional
     public DeliveryManager nextCompanyManager(UUID destinationHubId) {
-        // TODO: 동시성 이슈 해결 필요, 현재 단계 기본 구현 빠르게
         List<DeliveryManager> deliveryManagers = deliveryManagerRepository
                 .findAllByTypeAndHubIdAndDeletedAtIsNullOrderBySequenceAsc(DeliveryManagerType.COMPANY, destinationHubId);
 
@@ -62,26 +46,10 @@ public class DeliveryManagerAssignmentService {
             throw new DeliveryServiceException(ErrorCode.DELIVERY_MANAGER_NOT_FOUND);
         }
 
-        DeliveryManager lastAssignedDeliveryManager =
-                deliveryManagers.stream()
-                        .filter(manager -> manager.getLastAssignedAt() != null)
-                        .max(Comparator.comparing(
-                                DeliveryManager::getLastAssignedAt
-                        ))
-                        .orElse(null);
+        long counter = deliveryManagerRoundRobinCounter.nextCompany(destinationHubId);
 
-        DeliveryManager nextManager;
-        if (lastAssignedDeliveryManager == null) {
-            nextManager = deliveryManagers.get(0);
-        } else {
-            int currentIndex =
-                    deliveryManagers.indexOf(lastAssignedDeliveryManager);
-            int nextIndex =
-                    (currentIndex + 1) % deliveryManagers.size();
-            nextManager = deliveryManagers.get(nextIndex);
-        }
+        int index = (int) ((counter - 1) % deliveryManagers.size());
 
-        nextManager.markAssignedAt();
-        return nextManager;
+        return deliveryManagers.get(index);
     }
 }

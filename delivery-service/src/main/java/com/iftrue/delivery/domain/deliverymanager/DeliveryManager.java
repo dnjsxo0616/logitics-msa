@@ -35,9 +35,6 @@ public class DeliveryManager extends DeletableEntity {
     @Column(name = "sequence", nullable = false)
     private int sequence;
 
-    @Column(name = "last_assigned_at")
-    private Instant lastAssignedAt;
-
     private DeliveryManager(
             UUID id,
             String slackId,
@@ -88,9 +85,6 @@ public class DeliveryManager extends DeletableEntity {
         );
     }
 
-    public void markAssignedAt() {
-        this.lastAssignedAt = Instant.now();
-    }
 
     // 업체 배송 담당자 검증
     public void validateCompanyDeliveryAssignable(UUID destinationHubId) {
