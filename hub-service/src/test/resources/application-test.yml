@@ -18,3 +18,7 @@ spring:
 
 internal:
   service-key: test-internal-key
+
+hub-route:
+  generate-all:
+    enabled: false
