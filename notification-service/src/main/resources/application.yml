@@ -49,6 +49,11 @@ notification:
     max-prompt-chars: 4000
     processing-interval: 5s
     processing-timeout: 2m
+  slack:
+    bot-token: ${SLACK_BOT_TOKEN}
+    base-url: ${SLACK_API_BASE_URL:https://slack.com}
+    connect-timeout: 3s
+    read-timeout: 10s
 
 internal:
   service-key: ${INTERNAL_SERVICE_KEY}
