@@ -14,6 +14,18 @@ public interface AiAlertRepository extends JpaRepository<AiAlert, UUID> {
     @Query(value = """
             SELECT *
             FROM notification_schema.p_ai_alert
+            WHERE id = :aiAlertId
+              AND deleted_at IS NULL
+              AND status = 'COMPLETED'
+            FOR UPDATE
+            """, nativeQuery = true)
+    Optional<AiAlert> findCompletedByIdForUpdate(
+            @Param("aiAlertId") UUID aiAlertId
+    );
+
+    @Query(value = """
+            SELECT *
+            FROM notification_schema.p_ai_alert
             WHERE deleted_at IS NULL
               AND status = 'PENDING'
             ORDER BY created_at

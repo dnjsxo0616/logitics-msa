@@ -46,7 +46,7 @@ public class SlackMessage extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
-    @ColumnDefault("'WAITING_CONFIRMATION'")
+    @ColumnDefault("'SENDING'")
     private SlackMessageStatus status;
 
     @Column(name = "sent_at")
@@ -63,7 +63,7 @@ public class SlackMessage extends BaseEntity {
         this.aiAlert = aiAlert;
         this.slackReceiverId = slackReceiverId;
         this.message = message;
-        this.status = SlackMessageStatus.WAITING_CONFIRMATION;
+        this.status = SlackMessageStatus.SENDING;
     }
 
     public static SlackMessage create(
@@ -76,13 +76,6 @@ public class SlackMessage extends BaseEntity {
         validateText(message);
 
         return new SlackMessage(aiAlert, slackReceiverId, message);
-    }
-
-    public void startSending() {
-        validateStatus(SlackMessageStatus.WAITING_CONFIRMATION);
-
-        this.status = SlackMessageStatus.SENDING;
-        this.errorMessage = null;
     }
 
     public void complete(Instant sentAt) {
@@ -103,10 +96,7 @@ public class SlackMessage extends BaseEntity {
     }
 
     public void cancel() {
-        validateStatus(
-                SlackMessageStatus.WAITING_CONFIRMATION,
-                SlackMessageStatus.SENDING
-        );
+        validateStatus(SlackMessageStatus.SENDING);
 
         this.status = SlackMessageStatus.CANCELED;
     }
