@@ -6,7 +6,6 @@ import com.iftrue.delivery.application.service.deliverymanager.DeliveryManagerAs
 import com.iftrue.delivery.domain.delivery.Delivery;
 import com.iftrue.delivery.domain.delivery.DeliveryRepository;
 import com.iftrue.delivery.domain.deliverymanager.DeliveryManager;
-import com.iftrue.delivery.domain.deliveryroute.DeliveryRoute;
 import com.iftrue.delivery.infrastructure.client.dto.CompanyResponse;
 import com.iftrue.delivery.infrastructure.client.dto.HubRouteResponse;
 import com.iftrue.delivery.infrastructure.client.dto.HubRouteSegment;
@@ -34,29 +33,25 @@ public class DeliveryCreateTransactionService {
                 command.requesterName(),
                 command.requesterSlackId()
         );
-        
-        if (shortestRoute.isSameHub()) {
-            DeliveryRoute deliveryRoute = delivery.addSameHubRoute();
 
+        if (shortestRoute.isSameHub()) {
             DeliveryManager manager =
                     deliveryManagerAssignmentService.nextHubManager();
-
-            deliveryRoute.assignHubDeliveryManager(manager);
-
+            delivery.addSameHubRoute(manager);
         } else {
             for (HubRouteSegment segment : shortestRoute.segments()) {
-                DeliveryRoute deliveryRoute = delivery.addRoute(
+
+                DeliveryManager manager =
+                        deliveryManagerAssignmentService.nextHubManager();
+
+                delivery.addRoute(
+                        manager,
                         segment.departureHubId(),
                         segment.arrivalHubId(),
                         segment.sequence(),
                         segment.distance(),
                         segment.duration()
                 );
-
-                DeliveryManager manager =
-                        deliveryManagerAssignmentService.nextHubManager();
-
-                deliveryRoute.assignHubDeliveryManager(manager);
 
             }
         }

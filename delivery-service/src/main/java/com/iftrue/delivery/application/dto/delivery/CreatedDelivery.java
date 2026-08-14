@@ -2,9 +2,7 @@ package com.iftrue.delivery.application.dto.delivery;
 
 import com.iftrue.delivery.domain.delivery.Delivery;
 import com.iftrue.delivery.domain.delivery.DeliveryStatus;
-import com.iftrue.delivery.domain.deliverymanager.DeliveryManager;
 import com.iftrue.delivery.domain.deliveryroute.DeliveryRoute;
-import com.iftrue.delivery.infrastructure.client.dto.NotificationCreateRequest;
 
 import java.math.BigDecimal;
 import java.time.Instant;
