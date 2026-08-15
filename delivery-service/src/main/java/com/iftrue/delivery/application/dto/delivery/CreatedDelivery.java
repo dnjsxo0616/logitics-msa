@@ -2,9 +2,7 @@ package com.iftrue.delivery.application.dto.delivery;
 
 import com.iftrue.delivery.domain.delivery.Delivery;
 import com.iftrue.delivery.domain.delivery.DeliveryStatus;
-import com.iftrue.delivery.domain.deliveryroute.DeliveryRoute;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -20,10 +18,15 @@ public record CreatedDelivery(
         String recipientName,
         String recipientSlackId,
         Instant createdAt,
-        List<RouteInfo> deliveryRoutes
+        List<UUID> transitHubIds,
+        UUID firstHubDeliveryManagerId
 ) {
 
-    public static CreatedDelivery from(Delivery delivery) {
+    public static CreatedDelivery of(
+            Delivery delivery,
+            List<UUID> transitHubIds,
+            UUID firstHubDeliveryManagerId
+    ) {
         return new CreatedDelivery(
                 delivery.getId(),
                 delivery.getOrderId(),
@@ -35,31 +38,8 @@ public record CreatedDelivery(
                 delivery.getRecipientName(),
                 delivery.getRecipientSlackId(),
                 delivery.getCreatedAt(),
-                delivery.getDeliveryRoutes().stream()
-                        .map(RouteInfo::from)
-                        .toList()
+                transitHubIds,
+                firstHubDeliveryManagerId
         );
-    }
-
-    public record RouteInfo(
-            UUID routeId,
-            UUID departureHubId,
-            UUID arrivalHubId,
-            UUID hubDeliveryManagerId,
-            int sequence,
-            BigDecimal expectedDistance,
-            int expectedDuration
-    ) {
-        public static RouteInfo from(DeliveryRoute route) {
-            return new RouteInfo(
-                    route.getId(),
-                    route.getDepartureHubId(),
-                    route.getArrivalHubId(),
-                    route.getHubDeliveryManagerId(),
-                    route.getSequence(),
-                    route.getExpectedDistance(),
-                    route.getExpectedDuration()
-            );
-        }
     }
 }

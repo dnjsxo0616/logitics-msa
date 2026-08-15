@@ -62,18 +62,11 @@ public class DeliveryCreateService {
                 hubClient.getHub(createdDelivery.departureHubId()).data();
 
         List<HubResponse> transitHubs =
-                createdDelivery.deliveryRoutes().stream()
-                        .map(CreatedDelivery.RouteInfo::arrivalHubId)
-                        .filter(hubId ->
-                                !hubId.equals(createdDelivery.destinationHubId())
-                        )
-                        .distinct()
+                createdDelivery.transitHubIds().stream()
                         .map(hubId -> hubClient.getHub(hubId).data())
                         .toList();
 
-        UUID managerId = createdDelivery.deliveryRoutes()
-                .get(0)
-                .hubDeliveryManagerId();
+        UUID managerId = createdDelivery.firstHubDeliveryManagerId();
 
         UserResponse manager =
                 userClient.getUser(managerId).data();

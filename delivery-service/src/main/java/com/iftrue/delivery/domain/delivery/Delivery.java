@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -96,10 +95,6 @@ public class Delivery extends DeletableEntity {
                 recipientName,
                 recipientSlackId
         );
-    }
-
-    public List<DeliveryRoute> getDeliveryRoutes() {
-        return Collections.unmodifiableList(deliveryRoutes);
     }
 
     // 배송 경로 구성
