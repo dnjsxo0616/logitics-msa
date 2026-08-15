@@ -39,7 +39,7 @@ public class DeliveryCreateTransactionService {
         );
 
         UUID firstHubDeliveryManagerId = null;
-        List<UUID> transitHubIds = new ArrayList<>();
+        List<CreatedDelivery.TransitRouteInfo> transitRoutesInfo = new ArrayList<>();
 
         if (shortestRoute.isSameHub()) {
             DeliveryManager manager =
@@ -59,7 +59,13 @@ public class DeliveryCreateTransactionService {
                 }
 
                 if (!segment.arrivalHubId().equals(recipientCompany.hubId())) {
-                    transitHubIds.add(segment.arrivalHubId());
+                    transitRoutesInfo.add(
+                            new CreatedDelivery.TransitRouteInfo(
+                                    segment.arrivalHubId(),
+                                    segment.sequence(),
+                                    segment.duration()
+                            )
+                    );
                 }
 
                 delivery.addRoute(
@@ -77,7 +83,7 @@ public class DeliveryCreateTransactionService {
 
         return CreatedDelivery.of(
                 savedDelivery,
-                transitHubIds,
+                transitRoutesInfo,
                 firstHubDeliveryManagerId
         );
     }

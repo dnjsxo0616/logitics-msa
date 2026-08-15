@@ -18,13 +18,13 @@ public record CreatedDelivery(
         String recipientName,
         String recipientSlackId,
         Instant createdAt,
-        List<UUID> transitHubIds,
+        List<TransitRouteInfo> transitRouteInfos,
         UUID firstHubDeliveryManagerId
 ) {
 
     public static CreatedDelivery of(
             Delivery delivery,
-            List<UUID> transitHubIds,
+            List<TransitRouteInfo> transitRoutesInfo,
             UUID firstHubDeliveryManagerId
     ) {
         return new CreatedDelivery(
@@ -38,8 +38,15 @@ public record CreatedDelivery(
                 delivery.getRecipientName(),
                 delivery.getRecipientSlackId(),
                 delivery.getCreatedAt(),
-                transitHubIds,
+                transitRoutesInfo,
                 firstHubDeliveryManagerId
         );
+    }
+
+    public record TransitRouteInfo(
+            UUID arrivalHubId,
+            int sequence,
+            int expectedDuration
+    ) {
     }
 }
