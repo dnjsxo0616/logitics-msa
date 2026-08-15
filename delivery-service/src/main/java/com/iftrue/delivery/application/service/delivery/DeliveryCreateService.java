@@ -65,6 +65,7 @@ public class DeliveryCreateService {
                 createdDelivery.transitRouteInfos().stream()
                         .map(routeInfo -> hubClient.getHub(routeInfo.arrivalHubId()).data())
                         .toList();
+        // TODO: 추후 Hub Service에서 Bulk 조회 API 요청 ex) /api/v1/internal/hubs/batch
 
         UUID managerId = createdDelivery.firstHubDeliveryManagerId();
 
