@@ -89,13 +89,15 @@ public class DeliveryRoute extends DeletableEntity {
 
     public static DeliveryRoute create(
             Delivery delivery,
+            DeliveryManager manager,
             UUID departureHubId,
             UUID arrivalHubId,
             int sequence,
             BigDecimal expectedDistance,
             int expectedDuration
     ) {
-        return new DeliveryRoute(
+
+        DeliveryRoute deliveryRoute = new DeliveryRoute(
                 delivery,
                 departureHubId,
                 arrivalHubId,
@@ -103,6 +105,9 @@ public class DeliveryRoute extends DeletableEntity {
                 expectedDistance,
                 expectedDuration
         );
+
+        deliveryRoute.assignHubDeliveryManager(manager);
+        return deliveryRoute;
     }
 
     // 허브 배송 담당자 배정

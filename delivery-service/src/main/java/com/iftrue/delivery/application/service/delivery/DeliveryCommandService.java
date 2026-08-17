@@ -40,11 +40,7 @@ public class DeliveryCommandService {
     }
 
     @Transactional
-    public void arriveRoute(
-            UUID deliveryId,
-            UUID routeId
-
-    ) {
+    public void arriveRoute(UUID deliveryId, UUID routeId) {
         Delivery delivery = getDelivery(deliveryId);
         Instant arrivedAt = Instant.now();
         delivery.arriveRoute(routeId, arrivedAt);
@@ -56,11 +52,13 @@ public class DeliveryCommandService {
         }
     }
 
+    @Transactional
     public void startCompanyDelivery(UUID deliveryId) {
         Delivery delivery = getDelivery(deliveryId);
         delivery.startCompanyDelivery();
     }
 
+    @Transactional
     public void completeDelivery(UUID deliveryId) {
         Delivery delivery = getDelivery(deliveryId);
         delivery.completeDelivery();

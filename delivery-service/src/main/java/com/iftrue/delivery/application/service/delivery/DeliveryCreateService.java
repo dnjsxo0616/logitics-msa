@@ -61,19 +61,13 @@ public class DeliveryCreateService {
         HubResponse departureHub =
                 hubClient.getHub(createdDelivery.departureHubId()).data();
 
-        List<HubResponse> transitHubs =
-                createdDelivery.deliveryRoutes().stream()
-                        .map(CreatedDelivery.RouteInfo::arrivalHubId)
-                        .filter(hubId ->
-                                !hubId.equals(createdDelivery.destinationHubId())
-                        )
-                        .distinct()
-                        .map(hubId -> hubClient.getHub(hubId).data())
+        List<HubResponse> transitHubs = // TODO: N번의 단일 호출을 추후 Hub Service에서 Bulk 조회 API 요청 ex) /api/v1/internal/hubs/batch
+                createdDelivery.transitRouteInfos().stream()
+                        .map(routeInfo -> hubClient.getHub(routeInfo.arrivalHubId()).data())
                         .toList();
 
-        UUID managerId = createdDelivery.deliveryRoutes()
-                .get(0)
-                .hubDeliveryManagerId();
+
+        UUID managerId = createdDelivery.firstHubDeliveryManagerId();
 
         UserResponse manager =
                 userClient.getUser(managerId).data();

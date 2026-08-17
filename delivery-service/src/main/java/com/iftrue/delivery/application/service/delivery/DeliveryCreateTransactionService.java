@@ -6,12 +6,15 @@ import com.iftrue.delivery.application.service.deliverymanager.DeliveryManagerAs
 import com.iftrue.delivery.domain.delivery.Delivery;
 import com.iftrue.delivery.domain.delivery.DeliveryRepository;
 import com.iftrue.delivery.domain.deliverymanager.DeliveryManager;
-import com.iftrue.delivery.domain.deliveryroute.DeliveryRoute;
 import com.iftrue.delivery.infrastructure.client.dto.CompanyResponse;
 import com.iftrue.delivery.infrastructure.client.dto.HubRouteResponse;
 import com.iftrue.delivery.infrastructure.client.dto.HubRouteSegment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,18 +37,39 @@ public class DeliveryCreateTransactionService {
                 command.requesterName(),
                 command.requesterSlackId()
         );
-        
-        if (shortestRoute.isSameHub()) {
-            DeliveryRoute deliveryRoute = delivery.addSameHubRoute();
 
+        UUID firstHubDeliveryManagerId = null;
+        List<CreatedDelivery.TransitRouteInfo> transitRoutesInfo = new ArrayList<>();
+
+        if (shortestRoute.isSameHub()) {
             DeliveryManager manager =
                     deliveryManagerAssignmentService.nextHubManager();
 
-            deliveryRoute.assignHubDeliveryManager(manager);
+            firstHubDeliveryManagerId = manager.getHubId();
 
+            delivery.addSameHubRoute(manager);
         } else {
             for (HubRouteSegment segment : shortestRoute.segments()) {
-                DeliveryRoute deliveryRoute = delivery.addRoute(
+
+                DeliveryManager manager =
+                        deliveryManagerAssignmentService.nextHubManager();
+
+                if (firstHubDeliveryManagerId == null) {
+                    firstHubDeliveryManagerId = manager.getHubId(); // NOTE: 최초 처음 허브 배송 담당자 id를 담기 위한 로직
+                }
+
+                if (!segment.arrivalHubId().equals(recipientCompany.hubId())) {
+                    transitRoutesInfo.add(
+                            new CreatedDelivery.TransitRouteInfo(
+                                    segment.arrivalHubId(),
+                                    segment.sequence(),
+                                    segment.duration()
+                            )
+                    );
+                }
+
+                delivery.addRoute(
+                        manager,
                         segment.departureHubId(),
                         segment.arrivalHubId(),
                         segment.sequence(),
@@ -53,16 +77,15 @@ public class DeliveryCreateTransactionService {
                         segment.duration()
                 );
 
-                DeliveryManager manager =
-                        deliveryManagerAssignmentService.nextHubManager();
-
-                deliveryRoute.assignHubDeliveryManager(manager);
-
             }
         }
         Delivery savedDelivery = deliveryRepository.save(delivery);
 
-        return CreatedDelivery.from(savedDelivery);
+        return CreatedDelivery.of(
+                savedDelivery,
+                transitRoutesInfo,
+                firstHubDeliveryManagerId
+        );
     }
 }
 
