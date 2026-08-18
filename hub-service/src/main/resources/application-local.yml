@@ -18,4 +18,5 @@ server:
 
 eureka:
   client:
-    enabled: false
+    serviceUrl:
+      defaultZone: ${EUREKA_URI}
