@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 import static com.iftrue.delivery.domain.common.DomainValidator.requireNonNull;
@@ -59,6 +58,7 @@ public class Delivery extends DeletableEntity {
             cascade = CascadeType.PERSIST
     )
     @OrderBy("sequence ASC")
+    @Getter(AccessLevel.NONE)
     private List<DeliveryRoute> deliveryRoutes = new ArrayList<>();
 
     private Delivery(
@@ -98,7 +98,8 @@ public class Delivery extends DeletableEntity {
     }
 
     // 배송 경로 구성
-    public DeliveryRoute addRoute(
+    public void addRoute(
+            DeliveryManager manager,
             UUID departureHubId,
             UUID arrivalHubId,
             int sequence,
@@ -110,8 +111,10 @@ public class Delivery extends DeletableEntity {
         }
 
         validateRouteSequence(sequence);
+
         DeliveryRoute route = DeliveryRoute.create(
                 this,
+                manager,
                 departureHubId,
                 arrivalHubId,
                 sequence,
@@ -120,14 +123,15 @@ public class Delivery extends DeletableEntity {
         );
 
         deliveryRoutes.add(route);
-        return route;
     }
 
-    public DeliveryRoute addSameHubRoute() {
+    public void addSameHubRoute(DeliveryManager manager) {
         if (!departureHubId.equals(destinationHubId)) {
             throw new IllegalStateException("동일 허브 배송이 아닙니다.");
         }
-        return addRoute(
+
+        addRoute(
+                manager,
                 departureHubId,
                 destinationHubId,
                 1,

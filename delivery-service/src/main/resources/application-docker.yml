@@ -17,6 +17,12 @@ spring:
     schemas: delivery_schema
     default-schema: delivery_schema
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
 eureka:
   client:
     service-url:

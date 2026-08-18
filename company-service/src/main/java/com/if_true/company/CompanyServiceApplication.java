@@ -14,4 +14,5 @@ public class CompanyServiceApplication {
 		SpringApplication.run(CompanyServiceApplication.class, args);
 	}
 
+
 }

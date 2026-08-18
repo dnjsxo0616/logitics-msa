@@ -62,11 +62,7 @@ public record NotificationCreateRequest(
                         departureHub.address()
                 ),
 
-                createdDelivery.deliveryRoutes().stream()
-                        .filter(route ->
-                                !route.arrivalHubId()
-                                        .equals(createdDelivery.destinationHubId())
-                        )
+                createdDelivery.transitRouteInfos().stream()
                         .map(route -> {
                             HubResponse transitHub = transitHubs.stream()
                                     .filter(hub ->
