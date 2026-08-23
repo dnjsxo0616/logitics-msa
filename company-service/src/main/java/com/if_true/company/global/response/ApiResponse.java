@@ -4,7 +4,7 @@ import java.time.Instant;
 import org.springframework.http.HttpStatus;
 
 public record ApiResponse<T>(
-	Instant timestampz,
+	Instant timestamp,
 	int status,
 	String code,
 	T data

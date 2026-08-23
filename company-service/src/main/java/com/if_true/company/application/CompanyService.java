@@ -2,9 +2,11 @@ package com.if_true.company.application;
 
 import com.if_true.company.domain.Company;
 import com.if_true.company.domain.CompanyType;
+import com.if_true.company.global.response.ApiResponse;
 import com.if_true.company.infrastructure.CompanyRepository;
 import com.if_true.company.infrastructure.client.HubClient;
 import com.if_true.company.infrastructure.client.ProductClient;
+import com.if_true.company.infrastructure.client.dto.HubResponse;
 import com.if_true.company.presentation.dto.CompanyRequest;
 import com.if_true.company.presentation.dto.CompanyResponse;
 import com.if_true.company.presentation.dto.InternalCompanyResponse;
@@ -126,7 +128,7 @@ public class CompanyService {
 		if (!hubValidationEnabled) {
 			return;
 		}
-		circuitBreakerFactory.create("hub-service").run(
+		ApiResponse<HubResponse> response = circuitBreakerFactory.create("hub-service").run(
 			() -> hubClient.getHub(hubId),
 			throwable -> {
 				if (throwable instanceof FeignException.NotFound) {
@@ -135,18 +137,27 @@ public class CompanyService {
 				throw new IllegalStateException("Failed to validate hub.");
 			}
 		);
+		if (response == null
+			|| response.data() == null
+			|| response.data().id() == null) {
+			throw new IllegalStateException("Hub Service response data is missing.");
+		}
 	}
 
 	private void validateNoActiveProducts(UUID companyId) {
 		if (!productDeletePolicyEnabled) {
 			return;
 		}
-		long activeProductCount = circuitBreakerFactory.create("product-service").run(
+		ApiResponse<Long> response = circuitBreakerFactory.create("product-service").run(
 			() -> productClient.countProducts(companyId),
 			throwable -> {
 				throw new IllegalStateException("Failed to validate company product policy.");
 			}
 		);
+		Long activeProductCount = response.data();
+		if (activeProductCount == null) {
+			throw new IllegalStateException("Product Service response data is missing.");
+		}
 		if (activeProductCount > 0) {
 			throw new IllegalStateException("Company has active products.");
 		}

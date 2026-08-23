@@ -2,21 +2,17 @@ package com.iftrue.user.global.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.iftrue.user.global.exception.ErrorCode;
-import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.FieldError;
 
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-
+import java.time.Instant;
 import java.util.List;
 
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
 
-    private final OffsetDateTime timestamp;
+    private final Instant timestamp;
     private final int status;
     private final String message;
     private final String code;
@@ -26,7 +22,7 @@ public class ApiResponse<T> {
 
     private ApiResponse(String code, int status, String message, T data, List<ValidationError> errors
     ) {
-        this.timestamp = OffsetDateTime.now();
+        this.timestamp = Instant.now();
         this.code = code;
         this.status = status;
         this.message = message;

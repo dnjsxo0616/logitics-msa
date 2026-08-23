@@ -1,5 +1,6 @@
 package com.iftrue.order.infrastructure.client.product;
 
+import com.iftrue.order.global.response.ApiResponse;
 import com.iftrue.order.infrastructure.client.product.dto.InventoryQuantityRequest;
 import com.iftrue.order.infrastructure.client.product.dto.ProductResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -14,7 +15,7 @@ import java.util.UUID;
 public interface ProductClient {
 
     @GetMapping("/api/v1/internal/products/{productId}")
-    ProductResponse getProduct(
+    ApiResponse<ProductResponse> getProduct(
             @PathVariable("productId") UUID productId
     );
 

@@ -4,6 +4,7 @@ import com.iftrue.order.global.exception.BusinessException;
 import com.iftrue.order.global.exception.OrderErrorCode;
 import com.iftrue.order.global.response.ApiResponse;
 import com.iftrue.order.infrastructure.client.company.CompanyClient;
+import com.iftrue.order.infrastructure.client.company.dto.CompanyResponse;
 import com.iftrue.order.infrastructure.client.delivery.DeliveryClient;
 import com.iftrue.order.infrastructure.client.delivery.dto.DeliveryCreateRequest;
 import com.iftrue.order.infrastructure.client.delivery.dto.DeliveryCreateResponse;
@@ -29,11 +30,20 @@ public class OrderExternalService {
     private final Validator validator;
 
     public void checkCompanyExists(UUID companyId) {
-        companyClient.checkCompanyExists(companyId);
+        ApiResponse<CompanyResponse> response = companyClient.getCompany(companyId);
+
+        if (response == null
+                || response.getData() == null
+                || response.getData().id() == null) {
+            throw new BusinessException(OrderErrorCode.COMPANY_NOT_FOUND);
+        }
     }
 
     public ProductResponse getProduct(UUID productId) {
-        ProductResponse response = productClient.getProduct(productId);
+        ApiResponse<ProductResponse> apiResponse = productClient.getProduct(productId);
+        ProductResponse response = apiResponse == null
+                ? null
+                : apiResponse.getData();
 
         return validateResponse(response, OrderErrorCode.INVALID_PRODUCT_INFO);
     }

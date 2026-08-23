@@ -1,6 +1,7 @@
 package com.if_true.product.presentation;
 
 import com.if_true.product.application.ProductService;
+import com.if_true.product.global.response.ApiResponse;
 import com.if_true.product.presentation.dto.InternalProductResponse;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +19,12 @@ public class InternalProductController {
 	private final ProductService productService;
 
 	@GetMapping("/{productId}")
-	public InternalProductResponse get(@PathVariable UUID productId) {
-		return productService.getInternalProduct(productId);
+	public ApiResponse<InternalProductResponse> get(@PathVariable UUID productId) {
+		return ApiResponse.success(productService.getInternalProduct(productId));
 	}
 
 	@GetMapping("/count")
-	public long count(@RequestParam UUID companyId) {
-		return productService.countByCompanyId(companyId);
+	public ApiResponse<Long> count(@RequestParam UUID companyId) {
+		return ApiResponse.success(productService.countByCompanyId(companyId));
 	}
 }
