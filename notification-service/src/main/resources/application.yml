@@ -33,3 +33,15 @@ eureka:
     enabled: ${EUREKA_CLIENT_ENABLED:false}
     service-url:
       defaultZone: ${EUREKA_URI:http://localhost:19090/eureka}
+
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-3.7-flash}
+  base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
+  connect-timeout: ${GEMINI_CONNECT_TIMEOUT:5s}
+  read-timeout: ${GEMINI_READ_TIMEOUT:30s}
+
+notification:
+  business-zone: ${NOTIFICATION_BUSINESS_ZONE:Asia/Seoul}
+  work-start-time: ${NOTIFICATION_WORK_START_TIME:09:00}
+  work-end-time: ${NOTIFICATION_WORK_END_TIME:18:00}
