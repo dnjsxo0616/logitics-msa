@@ -2,12 +2,12 @@ package com.iftrue.notification.application.service;
 
 import com.iftrue.notification.domain.aialert.AiAlert;
 import com.iftrue.notification.domain.aialert.AiAlertRepository;
+import com.iftrue.notification.domain.aialert.AiRequestPayload;
 import com.iftrue.notification.domain.aialert.FailureStage;
 import com.iftrue.notification.domain.slackmessage.SlackMessage;
 import com.iftrue.notification.domain.slackmessage.SlackMessageRepository;
 import com.iftrue.notification.global.exception.BusinessException;
 import com.iftrue.notification.global.exception.NotificationErrorCode;
-import com.iftrue.notification.presentation.request.NotificationCreateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -25,11 +25,15 @@ public class NotificationTransactionService {
     private final SlackMessageRepository slackMessageRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AiAlert createNew(NotificationCreateRequest request) {
+    public AiAlert createNew(
+            UUID orderId,
+            UUID deliveryId,
+            AiRequestPayload requestPayload
+    ) {
         AiAlert aiAlert = AiAlert.create(
-                request.orderId(),
-                request.deliveryId(),
-                request.toAiRequestPayload()
+                orderId,
+                deliveryId,
+                requestPayload
         );
 
         return aiAlertRepository.saveAndFlush(aiAlert);
