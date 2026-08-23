@@ -142,7 +142,7 @@ public class OrderService {
                 request.requestedArrivalAt(),
                 request.supplierCompanyId(),
                 request.receiverCompanyId(),
-                recipient.name(),
+                recipient.nickname(),
                 recipient.email(),
                 recipient.slackId(),
                 new DeliveryCreateRequest.ProductInfo(

@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public record UserResponse(
         @NotNull UUID companyId,
-        @NotBlank String name,
+        @NotBlank String nickname,
         @NotBlank @Email String email,
         @NotBlank String slackId
 ) {

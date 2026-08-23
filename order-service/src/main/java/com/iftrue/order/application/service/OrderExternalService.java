@@ -39,7 +39,10 @@ public class OrderExternalService {
     }
 
     public UserResponse getRecipient(UUID userId) {
-        UserResponse response = userClient.getUser(userId);
+        ApiResponse<UserResponse> apiResponse = userClient.getUser(userId);
+        UserResponse response = apiResponse == null
+                ? null
+                : apiResponse.getData();
 
         return validateResponse(response, OrderErrorCode.INVALID_RECIPIENT_INFO);
     }
