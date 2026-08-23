@@ -28,7 +28,7 @@ public class OrderFeignErrorDecoder implements ErrorDecoder {
         }
 
         if (status == 404
-                && methodKey.contains("CompanyClient#checkCompanyExists")) {
+                && methodKey.contains("CompanyClient#getCompany")) {
             return OrderErrorCode.COMPANY_NOT_FOUND;
         }
 
