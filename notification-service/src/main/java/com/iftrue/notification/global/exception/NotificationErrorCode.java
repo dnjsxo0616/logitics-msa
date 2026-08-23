@@ -19,7 +19,11 @@ public enum NotificationErrorCode implements ErrorCode {
     FAILURE_MESSAGE_REQUIRED(HttpStatus.BAD_REQUEST, "N-009", "실패 메시지는 필수입니다."),
     INVALID_AI_ALERT_STATUS(HttpStatus.CONFLICT, "N-010", "현재 상태에서는 요청한 작업을 처리할 수 없습니다."),
     INVALID_FAILURE_STAGE(HttpStatus.CONFLICT, "N-011", "현재 상태에서 기록할 수 없는 실패 단계입니다."),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "N-012", "서버 오류가 발생했습니다.");
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "N-012", "서버 오류가 발생했습니다."),
+    AI_ALERT_REQUIRED(HttpStatus.BAD_REQUEST, "N-013", "AI 알림 정보는 필수입니다."),
+    SLACK_RECEIVER_ID_REQUIRED(HttpStatus.BAD_REQUEST, "N-014", "Slack 수신자 ID는 필수입니다."),
+    SLACK_MESSAGE_REQUIRED(HttpStatus.BAD_REQUEST, "N-015", "Slack 메시지는 필수입니다."),
+    SLACK_SENT_AT_REQUIRED(HttpStatus.BAD_REQUEST, "N-016", "Slack 발송 시각은 필수입니다.");
 
     private final HttpStatus status;
     private final String code;
