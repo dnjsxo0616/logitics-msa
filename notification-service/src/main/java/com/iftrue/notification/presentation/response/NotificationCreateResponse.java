@@ -10,6 +10,7 @@ public record NotificationCreateResponse(
         UUID orderId,
         UUID deliveryId,
         String status,
+        String failureStage,
         Instant createdAt
 ) {
 
@@ -19,6 +20,9 @@ public record NotificationCreateResponse(
                 aiAlert.getOrderId(),
                 aiAlert.getDeliveryId(),
                 aiAlert.getStatus().name(),
+                aiAlert.getFailureStage() == null
+                        ? null
+                        : aiAlert.getFailureStage().name(),
                 aiAlert.getCreatedAt()
         );
     }

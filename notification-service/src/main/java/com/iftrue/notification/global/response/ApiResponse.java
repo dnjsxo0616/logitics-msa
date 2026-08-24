@@ -19,6 +19,10 @@ public record ApiResponse<T>(
         return of(HttpStatus.CREATED, data);
     }
 
+    public static <T> ApiResponse<T> accepted(T data) {
+        return of(HttpStatus.ACCEPTED, data);
+    }
+
     private static <T> ApiResponse<T> of(HttpStatus status, T data) {
         return new ApiResponse<>(
                 Instant.now(),
