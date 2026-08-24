@@ -41,6 +41,12 @@ gemini:
   connect-timeout: ${GEMINI_CONNECT_TIMEOUT:5s}
   read-timeout: ${GEMINI_READ_TIMEOUT:30s}
 
+slack:
+  bot-token: ${SLACK_BOT_TOKEN:}
+  base-url: ${SLACK_BASE_URL:https://slack.com}
+  connect-timeout: ${SLACK_CONNECT_TIMEOUT:5s}
+  read-timeout: ${SLACK_READ_TIMEOUT:30s}
+
 notification:
   business-zone: ${NOTIFICATION_BUSINESS_ZONE:Asia/Seoul}
   work-start-time: ${NOTIFICATION_WORK_START_TIME:09:00}
