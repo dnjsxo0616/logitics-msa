@@ -63,13 +63,15 @@ public class NotificationTransactionService {
     }
 
     @Transactional
-    public void recordFailure(
+    public AiAlert recordFailure(
             UUID aiAlertId,
             FailureStage stage,
             String message
     ) {
         AiAlert aiAlert = getAiAlert(aiAlertId);
         aiAlert.recordFailure(stage, message);
+
+        return aiAlert;
     }
 
     @Transactional
