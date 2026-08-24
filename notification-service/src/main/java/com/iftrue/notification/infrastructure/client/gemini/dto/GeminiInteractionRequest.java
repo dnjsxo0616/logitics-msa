@@ -10,7 +10,9 @@ public record GeminiInteractionRequest(
         String input,
 
         @JsonProperty("response_format")
-        ResponseFormat responseFormat
+        ResponseFormat responseFormat,
+
+        boolean store
 ) {
 
     public static GeminiInteractionRequest create(
@@ -46,7 +48,8 @@ public record GeminiInteractionRequest(
         return new GeminiInteractionRequest(
                 model,
                 prompt,
-                responseFormat
+                responseFormat,
+                false
         );
     }
 

@@ -2,6 +2,7 @@ package com.iftrue.notification.application.service;
 
 import com.iftrue.notification.application.dto.GeminiDeadlineResult;
 import com.iftrue.notification.application.exception.AiDeadlineValidationException;
+import com.iftrue.notification.domain.aialert.AiRequestPayload;
 import com.iftrue.notification.global.config.NotificationProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,19 +17,37 @@ import java.time.ZonedDateTime;
 public class AiDeadlineValidator {
 
     private final NotificationProperties notificationProperties;
+    private final AiDeadlineCalculator aiDeadlineCalculator;
 
     public void validate(
             GeminiDeadlineResult result,
-            Instant requestedArrivalAt
+            AiRequestPayload payload
     ) {
         validateResult(result);
-        validateRequestedArrivalAt(requestedArrivalAt);
+        validatePayload(payload);
 
         Instant finalDeadline = result.finalDeadline().toInstant();
+        Instant latestAllowedDeadline =
+                aiDeadlineCalculator.calculateLatestDeadline(
+                        payload.requestedArrivalAt(),
+                        payload.totalExpectedDurationMinutes()
+                );
 
+        validateFeasibleDeliveryWindow(
+                latestAllowedDeadline,
+                payload.deliveryCreatedAt()
+        );
+        validateNotBeforeDeliveryCreated(
+                finalDeadline,
+                payload.deliveryCreatedAt()
+        );
         validateNotAfterRequestedArrival(
                 finalDeadline,
-                requestedArrivalAt
+                payload.requestedArrivalAt()
+        );
+        validateNotAfterLatestAllowedDeadline(
+                finalDeadline,
+                latestAllowedDeadline
         );
         validateBusinessHours(finalDeadline);
     }
@@ -53,12 +72,50 @@ public class AiDeadlineValidator {
         }
     }
 
-    private void validateRequestedArrivalAt(
-            Instant requestedArrivalAt
-    ) {
-        if (requestedArrivalAt == null) {
+    private void validatePayload(AiRequestPayload payload) {
+        if (payload == null) {
             throw new AiDeadlineValidationException(
-                    "희망 도착 시각이 없습니다."
+                    "AI 발송 시한 검증에 필요한 요청 정보가 없습니다."
+            );
+        }
+
+        validateRequiredTime(
+                payload.requestedArrivalAt(),
+                "희망 도착 시각이 없습니다."
+        );
+        validateRequiredTime(
+                payload.deliveryCreatedAt(),
+                "배송 생성 시각이 없습니다."
+        );
+    }
+
+    private void validateRequiredTime(
+            Instant value,
+            String message
+    ) {
+        if (value == null) {
+            throw new AiDeadlineValidationException(message);
+        }
+    }
+
+    private void validateFeasibleDeliveryWindow(
+            Instant latestAllowedDeadline,
+            Instant deliveryCreatedAt
+    ) {
+        if (latestAllowedDeadline.isBefore(deliveryCreatedAt)) {
+            throw new AiDeadlineValidationException(
+                    "총 예상 소요시간을 고려하면 희망 도착 시각을 맞출 수 없습니다."
+            );
+        }
+    }
+
+    private void validateNotBeforeDeliveryCreated(
+            Instant finalDeadline,
+            Instant deliveryCreatedAt
+    ) {
+        if (finalDeadline.isBefore(deliveryCreatedAt)) {
+            throw new AiDeadlineValidationException(
+                    "최종 발송 시한은 배송 생성 시각보다 빠를 수 없습니다."
             );
         }
     }
@@ -70,6 +127,17 @@ public class AiDeadlineValidator {
         if (finalDeadline.isAfter(requestedArrivalAt)) {
             throw new AiDeadlineValidationException(
                     "최종 발송 시한은 희망 도착 시각보다 늦을 수 없습니다."
+            );
+        }
+    }
+
+    private void validateNotAfterLatestAllowedDeadline(
+            Instant finalDeadline,
+            Instant latestAllowedDeadline
+    ) {
+        if (finalDeadline.isAfter(latestAllowedDeadline)) {
+            throw new AiDeadlineValidationException(
+                    "최종 발송 시한에 총 예상 소요시간이 충분히 반영되지 않았습니다."
             );
         }
     }
